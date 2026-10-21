@@ -18,7 +18,7 @@ function render(){
  $("clock").textContent=fmt(S.rem);
  $("per").textContent="Veld "+(S.per+1)+" · "+S.per*20+"–"+(S.per+1)*20+" min";
  $("tabs").innerHTML=S.pl.map((f,fi)=>`<button class="tab ${fi==view?"on":""}" data-v="${fi}">Veld ${fi+1}${fi==S.per?" ●":""}<small>${fi*20}–${fi*20+20}'</small></button>`).join("");
- $("fields").innerHTML=S.pl.map((f,fi)=>`<div class="fw ${fi==view?"vis":""}"><div class="fh ${fi==S.per?"act":""}"><span>Veld ${fi+1} <small>${fi*20}–${fi*20+20} min</small></span>${fi==S.per?'<span class="now">● Nu bezig</span>':`<button class="sw" data-f="${fi}" ${run?'disabled title="Pauzeer eerst de klok"':""}>⇄ Naar dit veld</button>`}</div><div class="pitch ${fi==S.per?"act":""}">`+
+ $("fields").innerHTML=S.pl.map((f,fi)=>`<div class="fw ${fi==view?"vis":""}"><div class="fh ${fi==S.per?"act":""}"><span>Veld ${fi+1} <small>${fi*20}–${fi*20+20} min</small></span>${fi==S.per?'<span class="now">● Nu bezig</span>':`<button class="sw" data-f="${fi}">⇄ Naar dit veld</button>`}</div><div class="pitch ${fi==S.per?"act":""}">`+
   POS.map((p,si)=>{const pi=f[si];return `<div class="slot" style="left:${p[1]}%;top:${p[2]}%" data-f="${fi}" data-s="${si}">`+
   (pi==null?'<div class="empty"></div>':`<span class="tok">${kit(pi)}<button class="g1 noprint" data-goal="${fi},${pi}">⚽</button></span><span class="lbl">${esc(S.names[pi])}</span>`)+
   `<span class="lbl" style="opacity:.85">${pi==null?p[0]:""}</span></div>`}).join("")+`</div></div>`).join("");
@@ -41,9 +41,10 @@ document.addEventListener("click",e=>{
   if(i<0)row[s]=null;else{const o=row.indexOf(i);if(o>-1)row[o]=null;row[s]=i}
   $("pick").close();save();render();return}
  if(t.dataset.close||t.id=="pick"){$("pick").close();return}
- const sw=t.closest(".sw");if(sw&&!run){const f=+sw.dataset.f;
-  if(S.rem<1200&&!confirm("De klok van veld "+(S.per+1)+" staat op "+fmt(S.rem)+". Wisselen naar veld "+(f+1)+" en de klok op 20:00 zetten?"))return;
-  S.per=view=f;S.rem=1200;save();render()}
+ const sw=t.closest(".sw");if(sw){const f=+sw.dataset.f;if(run)tick();
+  if(S.rem<1200&&!confirm("De klok van veld "+(S.per+1)+" staat op "+fmt(S.rem)+". Wisselen naar veld "+(f+1)+" en de klok op 20:00 zetten?"+(run?" De klok blijft lopen.":"")))return;
+  // Een lopende klok telt verder op het nieuwe veld
+  S.per=view=f;S.rem=1200;if(run)S.last=Date.now();save();render()}
 });
 // Keuzelijst om een speler op een positie te zetten, zonder naar de bank te moeten scrollen
 function openPick(f,s){

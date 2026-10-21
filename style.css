@@ -24,7 +24,6 @@ button,.slot,.b .t,.fh{touch-action:manipulation;-webkit-tap-highlight-color:tra
 .fh small{font-weight:400}.fh.act{color:var(--put)}
 .sw{background:var(--card);color:var(--put);border:2px solid var(--pu);box-shadow:0 3px 0 var(--pu);padding:5px 10px;min-height:36px;font-size:14px;font-weight:600}
 .sw:active{transform:translateY(2px);box-shadow:0 1px 0 var(--pu)}.sw:hover{background:rgba(106,44,145,.12)}
-.sw:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
 .now{background:var(--gr);color:#fff;border-radius:999px;padding:5px 12px;font-size:13px}
 .pitch{position:relative;aspect-ratio:3/4;background:repeating-linear-gradient(#3c9d4a 0 12.5%,#35923f 12.5% 25%);border:3px solid #fff;border-radius:6px;overflow:hidden}
 .pitch.act{outline:3px solid var(--pu)}
