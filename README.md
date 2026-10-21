@@ -6,6 +6,7 @@ Eenvoudige webapp om een voetbalwedstrijd van 80 minuten (4 × 20 min) te planne
 - 4 halve velden met 8 posities (keeper, laatste man, links-/rechtsachter, mid, links-/rechtsvoor, spits)
 - Reservebank met 14 spelers (12 veldspelers + 2 keepers), namen aanpasbaar en bewaard
 - Aftelklok per periode met start, pauze en reset; automatische overgang naar het volgende veld
+- Klok en speelminuten blijven correct bij vergrendeld scherm, wisselen van app of herladen; het scherm blijft aan zolang de klok loopt
 - Speelminuten per speler en doelpuntenlijst
 - Printen van velden, spelers en doelpunten
 - Clublogo (klik op het logo om een ander logo te kiezen)

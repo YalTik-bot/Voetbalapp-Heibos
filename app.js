@@ -1,16 +1,16 @@
 const POS=[["Keeper",50,9],["Laatste man",50,27],["Linksachter",20,43],["Rechtsachter",80,43],["Mid",50,59],["Linksvoor",20,76],["Rechtsvoor",80,76],["Spits",50,90]];
 const KEY="khs_v1";
-let S={names:Array.from({length:14},(_,i)=>i<12?"Speler "+(i+1):"Keeper "+(i-11)),pl:[0,1,2,3].map(()=>Array(8).fill(null)),sec:Array(14).fill(0),goals:[],logo:"",per:0,rem:1200};
+let S={names:Array.from({length:14},(_,i)=>i<12?"Speler "+(i+1):"Keeper "+(i-11)),pl:[0,1,2,3].map(()=>Array(8).fill(null)),sec:Array(14).fill(0),goals:[],logo:"",per:0,rem:1200,run:false,last:0};
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.names)S=Object.assign(S,s)}catch(e){}
 const DEF_LOGO="logo.jpg";
 if(!S.logo)S.logo=DEF_LOGO;
-let sel=null,run=null;
+let sel=null,run=null,wl=null;
 const $=id=>document.getElementById(id);
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const isK=i=>i>=12;
 function kit(i){const c=isK(i)?"#111":"#7b2fa8";
-return `<svg width="34" height="34" viewBox="0 0 34 34"><path d="M10 3l-8 6 4 6 3-2v9h16v-9l3 2 4-6-8-6c-1 3-3 4-7 4s-6-1-7-4z" fill="${c}" stroke="#fff" stroke-width="1"/><rect x="9" y="23" width="16" height="9" rx="2" fill="#1f8a3a" stroke="#fff" stroke-width="1"/></svg>`}
+return `<svg width="34" height="34" viewBox="0 0 34 34"><path d="M10 3l-8 6 4 6 3-2v9h16v-9l3 2 4-6-8-6c-1 3-3 4-7 4s-6-1-7-4z" fill="${c}" stroke="#fff" stroke-width="1"/><rect x="9" y="23" width="16" height="9" rx="2" fill="${isK(i)?"#111":"#1f8a3a"}" stroke="#fff" stroke-width="1"/></svg>`}
 const fmt=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
 function minute(){return S.per*20+Math.min(20,Math.floor((1200-S.rem)/60)+1)}
 function render(){
@@ -41,17 +41,26 @@ function row_clear(f,s){S.pl[f][s]=null}
 document.addEventListener("change",e=>{if(e.target.dataset.n!=null){S.names[+e.target.dataset.n]=e.target.value||"Speler";save();render()}});
 function up(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement("canvas");const k=Math.min(1,256/Math.max(im.width,im.height));c.width=im.width*k;c.height=im.height*k;c.getContext("2d").drawImage(im,0,0,c.width,c.height);S.logo=c.toDataURL("image/png");save();render()};im.src=r.result};r.readAsDataURL(f)}
 $("lf").onchange=up;
+// Tijd wordt berekend uit de klok van het toestel, zodat ze blijft kloppen bij schermvergrendeling, app wisselen of herladen
 function tick(){
- S.rem--;
- S.pl[S.per].forEach(p=>{if(p!=null)S.sec[p]++});
+ const n=Math.floor((Date.now()-S.last)/1000);
+ for(let k=0;k<n&&run;k++){
+  S.last+=1000;S.rem--;
+  S.pl[S.per].forEach(p=>{if(p!=null)S.sec[p]++});
+  if(S.rem<=0){stop();if(S.per<3){S.per++;S.rem=1200}else S.rem=0;render()}
+ }
+ if(n<1)return;
  $("clock").textContent=fmt(S.rem);
  document.querySelectorAll("[data-min]").forEach(el=>el.textContent=fmt(S.sec[+el.dataset.min]));
- if(S.rem<=0){stop();if(S.per<3){S.per++;S.rem=1200}else S.rem=0;render()}
- if(S.rem%5==0)save();
+ save();
 }
-function stop(){clearInterval(run);run=null;save()}
-$("go").onclick=()=>{if(!run&&S.rem>0)run=setInterval(tick,1000)};
+async function lock(){try{if(run&&!wl&&navigator.wakeLock){wl=await navigator.wakeLock.request("screen");wl.onrelease=()=>{wl=null}}}catch(e){}}
+function loop(){run=setInterval(tick,250);lock()}
+function stop(){clearInterval(run);run=null;S.run=false;if(wl)wl.release();save()}
+$("go").onclick=()=>{if(!run&&S.rem>0){S.last=Date.now();S.run=true;save();loop()}};
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState=="visible"&&run){tick();lock()}});
 $("pa").onclick=stop;
 $("rs").onclick=()=>{if(confirm("Tijd, spelersminuten en doelpunten resetten? (opstelling en namen blijven)")){stop();S.per=0;S.rem=1200;S.sec=Array(14).fill(0);S.goals=[];save();render()}};
 $("pr").onclick=()=>window.print();
 render();
+if(S.run&&S.rem>0){loop();tick()}else S.run=false;
