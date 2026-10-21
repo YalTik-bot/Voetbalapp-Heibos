@@ -24,6 +24,9 @@ Open `index.html` in een browser, of publiceer via GitHub Pages.
 3. Kies bij *Source* **Deploy from a branch**, branch `main`, map `/ (root)`, en klik **Save**.
 4. Na een minuut staat de app op `https://<jouw-gebruikersnaam>.github.io/<repo-naam>/`.
 
+## Na een aanpassing
+Verhoog het versienummer achter `style.css?v=` en `app.js?v=` in `index.html`, zodat browsers de nieuwe bestanden ophalen in plaats van een oude bewaarde kopie.
+
 ## Bestanden
 | Bestand | Inhoud |
 |---|---|
