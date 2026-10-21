@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K. Heibos S.V. Kalmthout - Voetbal App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <img src="https://s3.eu-central-1.amazonaws.com/twizzit-image-cache/media_xxlarge/media/2616/696e1dbdd821b.png" alt="K. Heibos S.V. Logo" id="logo">
+        <h1>K. Heibos S.V. Kalmthout - Match Planner</h1>
+        <div id="timer-container">
+            <span id="display-time">80:00</span>
+            <button id="start-btn">Start</button>
+            <button id="pause-btn">Pauze</button>
+            <button id="reset-btn">Reset</button>
+        </div>
+    </header>
+
+    <main>
+        <div id="fields-grid">
+            <div class="field-container" data-segment="1">
+                <h3>0 - 20 min</h3>
+                <div class="field" id="field-1">
+                    <div class="position keeper" data-pos="GK"></div>
+                    <div class="position lastman" data-pos="LM"></div>
+                    <div class="position l-def" data-pos="LD"></div>
+                    <div class="position r-def" data-pos="RD"></div>
+                    <div class="position l-att" data-pos="LA"></div>
+                    <div class="position r-att" data-pos="RA"></div>
+                    <div class="position mid" data-pos="MM"></div>
+                    <div class="position striker" data-pos="ST"></div>
+                </div>
+            </div>
+            <div class="field-container" data-segment="2">
+                <h3>20 - 40 min</h3>
+                <div class="field" id="field-2">
+                    <div class="position keeper" data-pos="GK"></div>
+                    <div class="position lastman" data-pos="LM"></div>
+                    <div class="position l-def" data-pos="LD"></div>
+                    <div class="position r-def" data-pos="RD"></div>
+                    <div class="position l-att" data-pos="LA"></div>
+                    <div class="position r-att" data-pos="RA"></div>
+                    <div class="position mid" data-pos="MM"></div>
+                    <div class="position striker" data-pos="ST"></div>
+                </div>
+            </div>
+            <div class="field-container" data-segment="3">
+                <h3>40 - 60 min</h3>
+                <div class="field" id="field-3">
+                    <div class="position keeper" data-pos="GK"></div>
+                    <div class="position lastman" data-pos="LM"></div>
+                    <div class="position l-def" data-pos="LD"></div>
+                    <div class="position r-def" data-pos="RD"></div>
+                    <div class="position l-att" data-pos="LA"></div>
+                    <div class="position r-att" data-pos="RA"></div>
+                    <div class="position mid" data-pos="MM"></div>
+                    <div class="position striker" data-pos="ST"></div>
+                </div>
+            </div>
+            <div class="field-container" data-segment="4">
+                <h3>60 - 80 min</h3>
+                <div class="field" id="field-4">
+                    <div class="position keeper" data-pos="GK"></div>
+                    <div class="position lastman" data-pos="LM"></div>
+                    <div class="position l-def" data-pos="LD"></div>
+                    <div class="position r-def" data-pos="RD"></div>
+                    <div class="position l-att" data-pos="LA"></div>
+                    <div class="position r-att" data-pos="RA"></div>
+                    <div class="position mid" data-pos="MM"></div>
+                    <div class="position striker" data-pos="ST"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="sidebar">
+            <h3>Reserve Bank</h3>
+            <div id="reserve-bank"></div>
+            <button id="print-btn">Print Overzicht</button>
+        </div>
+    </main>
+
+    <section id="goal-section">
+        <h3>Doelpunten</h3>
+        <ul id="goal-list"></ul>
+    </section>
+
+    <section id="stats-section">
+        <h3>Gespeelde Minuten</h3>
+        <table id="stats-table">
+            <thead>
+                <tr>
+                    <th>Speler</th>
+                    <th>Minuten</th>
+                    <th>Acties</th>
+                </tr>
+            </thead>
+            <tbody id="stats-body"></tbody>
+        </table>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 20px;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #4b0082; /* Purple */
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+#logo {
+    height: 60px;
+}
+
+#timer-container {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+#timer-container button {
+    margin-left: 10px;
+    padding: 5px 15px;
+    cursor: pointer;
+}
+
+main {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 20px;
+}
+
+#fields-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.field-container {
+    background-color: white;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.field {
+    width: 300px;
+    height: 400px;
+    background-color: #2e8b57; /* SeaGreen */
+    margin: 0 auto;
+    position: relative;
+    border: 2px solid white;
+    border-bottom: none; /* Half field */
+}
+
+/* Field Markings */
+.field::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 60px;
+    border: 2px solid white;
+}
+
+.position {
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    border-radius: 50%;
+    border: 1px dashed rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: white;
+}
+
+.position::after {
+    content: attr(data-pos);
+    position: absolute;
+    bottom: -15px;
+}
+
+.keeper { top: 10px; left: 130px; }
+.lastman { top: 80px; left: 130px; }
+.l-def { top: 150px; left: 50px; }
+.r-def { top: 150px; left: 210px; }
+.mid { top: 220px; left: 130px; }
+.l-att { top: 290px; left: 50px; }
+.r-att { top: 290px; left: 210px; }
+.striker { top: 350px; left: 130px; }
+
+#sidebar {
+    background-color: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#reserve-bank {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.player-token {
+    width: 50px;
+    height: 70px;
+    text-align: center;
+    cursor: grab;
+    position: relative;
+}
+
+.jersey {
+    width: 40px;
+    height: 40px;
+    background-color: #4b0082; /* Purple */
+    border-radius: 5px;
+    margin: 0 auto;
+    border: 2px solid #000;
+}
+
+.shorts {
+    width: 30px;
+    height: 15px;
+    background-color: #008000; /* Green */
+    margin: -2px auto 0;
+    border: 1px solid #000;
+}
+
+.player-token.keeper .jersey {
+    background-color: #000; /* Black */
+}
+
+.player-name-input {
+    width: 100%;
+    font-size: 10px;
+    border: none;
+    text-align: center;
+    background: transparent;
+}
+
+#print-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+#goal-section, #stats-section {
+    margin-top: 20px;
+    background-color: white;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+#stats-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#stats-table th, #stats-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.goal-btn {
+    padding: 2px 5px;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+@media print {
+    #timer-container, #start-btn, #pause-btn, #reset-btn, .player-name-input, #sidebar h3, #sidebar button, .goal-btn {
+        display: none !important;
+    }
+    #fields-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
