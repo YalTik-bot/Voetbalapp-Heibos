@@ -9,6 +9,7 @@ Eenvoudige webapp om een voetbalwedstrijd van 80 minuten (4 × 20 min) te planne
 - Klok en speelminuten blijven correct bij vergrendeld scherm, wisselen van app of herladen; het scherm blijft aan zolang de klok loopt
 - Speelminuten per speler en doelpuntenlijst
 - Printen van velden, spelers en doelpunten
+- Donkere modus (knop 🌙/☀️ rechtsboven; volgt standaard de instelling van het toestel)
 - Handig op de GSM: klok blijft bovenaan staan, tabbladen per veld, tik een positie om een speler te kiezen, als app op het beginscherm te zetten
 - Clublogo (klik op het logo om een ander logo te kiezen)
 
