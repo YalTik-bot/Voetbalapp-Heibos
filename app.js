@@ -1,14 +1,19 @@
 const POS=[["Keeper",50,9],["Laatste man",50,27],["Linksachter",20,43],["Rechtsachter",80,43],["Mid",50,59],["Linksvoor",20,76],["Rechtsvoor",80,76],["Spits",50,90]];
 const KEY="khs_v1";
-let S={names:Array.from({length:14},(_,i)=>i<12?"Speler "+(i+1):"Keeper "+(i-11)),pl:[0,1,2,3].map(()=>Array(8).fill(null)),sec:Array(14).fill(0),fsec:[0,1,2,3].map(()=>Array(14).fill(0)),goals:[],logo:"",per:0,rem:1200,run:false,last:0};
+const NP=14,N=NP+2; // 14 veldspelers + 2 keepers
+let S={names:Array.from({length:N},(_,i)=>i<NP?"Speler "+(i+1):"Keeper "+(i-NP+1)),pl:[0,1,2,3].map(()=>Array(8).fill(null)),sec:Array(N).fill(0),fsec:[0,1,2,3].map(()=>Array(N).fill(0)),goals:[],logo:"",per:0,rem:1200,run:false,last:0};
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.names)S=Object.assign(S,s)}catch(e){}
+// Oude versie had 12 veldspelers: keepers (12, 13) schuiven op naar 14, 15 en er komen 2 veldspelers bij
+if(S.names.length==14){const m=i=>i==null?null:i<12?i+0:i+2,ins=a=>[...a.slice(0,12),0,0,...a.slice(12)];
+ S.names=[...S.names.slice(0,12),"Speler 13","Speler 14",...S.names.slice(12)];S.sec=ins(S.sec);
+ S.fsec=S.fsec.map(a=>a.length==14?ins(a):a);S.pl=S.pl.map(f=>f.map(m));S.goals.forEach(g=>g.p=m(g.p))}
 const DEF_LOGO="logo.jpg";
 if(!S.logo)S.logo=DEF_LOGO;
 let sel=null,run=null,wl=null,view=S.per,pick=null;
 const $=id=>document.getElementById(id);
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const isK=i=>i>=12;
+const isK=i=>i>=NP;
 function kit(i,z=34){const c=isK(i)?"#111":"#7b2fa8";
 return `<svg width="${z}" height="${z}" viewBox="0 0 34 34"><path d="M10 3l-8 6 4 6 3-2v9h16v-9l3 2 4-6-8-6c-1 3-3 4-7 4s-6-1-7-4z" fill="${c}" stroke="#fff" stroke-width="1"/><rect x="9" y="23" width="16" height="9" rx="2" fill="${isK(i)?"#111":"#1f8a3a"}" stroke="#fff" stroke-width="1"/></svg>`}
 const fmt=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
@@ -79,7 +84,7 @@ function stop(){clearInterval(run);run=null;S.run=false;if(wl)wl.release();save(
 $("go").onclick=()=>{if(!run&&view!=S.per&&!goTo(view))return;if(!run&&S.rem>0){S.last=Date.now();S.run=true;save();loop();render()}};
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState=="visible"&&run){tick();lock()}});
 $("pa").onclick=()=>{stop();render()};
-$("rs").onclick=()=>{if(confirm("Tijd, spelersminuten en doelpunten resetten? (opstelling en namen blijven)")){stop();S.per=0;S.rem=1200;S.sec=Array(14).fill(0);S.fsec=[0,1,2,3].map(()=>Array(14).fill(0));S.goals=[];save();render()}};
+$("rs").onclick=()=>{if(confirm("Tijd, spelersminuten en doelpunten resetten? (opstelling en namen blijven)")){stop();S.per=0;S.rem=1200;S.sec=Array(N).fill(0);S.fsec=[0,1,2,3].map(()=>Array(N).fill(0));S.goals=[];save();render()}};
 $("pr").onclick=()=>window.print();
 // Donkere modus: volgt het toestel tot je zelf kiest
 const dark=matchMedia("(prefers-color-scheme: dark)");
