@@ -1,6 +1,6 @@
 const POS=[["Keeper",50,9],["Laatste man",50,27],["Linksachter",20,43],["Rechtsachter",80,43],["Mid",50,59],["Linksvoor",20,76],["Rechtsvoor",80,76],["Spits",50,90]];
 const KEY="khs_v1";
-let S={names:Array.from({length:14},(_,i)=>i<12?"Speler "+(i+1):"Keeper "+(i-11)),pl:[0,1,2,3].map(()=>Array(8).fill(null)),sec:Array(14).fill(0),goals:[],logo:"",per:0,rem:1200,run:false,last:0};
+let S={names:Array.from({length:14},(_,i)=>i<12?"Speler "+(i+1):"Keeper "+(i-11)),pl:[0,1,2,3].map(()=>Array(8).fill(null)),sec:Array(14).fill(0),fsec:[0,1,2,3].map(()=>Array(14).fill(0)),goals:[],logo:"",per:0,rem:1200,run:false,last:0};
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.names)S=Object.assign(S,s)}catch(e){}
 const DEF_LOGO="logo.jpg";
 if(!S.logo)S.logo=DEF_LOGO;
@@ -20,7 +20,7 @@ function render(){
  $("tabs").innerHTML=S.pl.map((f,fi)=>`<button class="tab ${fi==view?"on":""}" data-v="${fi}">Veld ${fi+1}${fi==S.per?" ●":""}<small>${fi*20}–${fi*20+20}'</small></button>`).join("");
  $("fields").innerHTML=S.pl.map((f,fi)=>`<div class="fw ${fi==view?"vis":""}"><div class="fh ${fi==S.per?"act":""}"><span>Veld ${fi+1} <small>${fi*20}–${fi*20+20} min</small></span>${fi==S.per?'<span class="now">● Nu bezig</span>':`<button class="sw" data-f="${fi}">⇄ Naar dit veld</button>`}</div><div class="pitch ${fi==S.per?"act":""}">`+
   POS.map((p,si)=>{const pi=f[si];return `<div class="slot" style="left:${p[1]}%;top:${p[2]}%" data-f="${fi}" data-s="${si}">`+
-  (pi==null?'<div class="empty"></div>':`<span class="tok">${kit(pi)}<button class="g1 noprint" data-goal="${fi},${pi}">⚽</button></span><span class="lbl">${esc(S.names[pi])}</span>`)+
+  (pi==null?'<div class="empty"></div>':`<span class="tok">${kit(pi)}<button class="g1 noprint" data-goal="${fi},${pi}">⚽</button></span><span class="lbl">${esc(S.names[pi])}</span><span class="lbl fm" data-fm="${fi},${pi}">⏱ ${fmt(S.fsec[fi][pi])}</span>`)+
   `<span class="lbl" style="opacity:.85">${pi==null?p[0]:""}</span></div>`}).join("")+`</div></div>`).join("");
  $("bench").innerHTML=S.names.map((n,i)=>`<div class="b ${sel===i?"sel":""} ${S.pl[view].includes(i)?"on":""}"><div class="t" data-b="${i}">${kit(i)}<br><small>${isK(i)?"Keeper":"Speler"}</small></div><input value="${esc(n)}" data-n="${i}" maxlength="20"><small>⏱ <span data-min="${i}">${fmt(S.sec[i])}</span></small></div>`).join("");
  renderGoals();
@@ -41,11 +41,12 @@ document.addEventListener("click",e=>{
   if(i<0)row[s]=null;else{const o=row.indexOf(i);if(o>-1)row[o]=null;row[s]=i}
   $("pick").close();save();render();return}
  if(t.dataset.close||t.id=="pick"){$("pick").close();return}
- const sw=t.closest(".sw");if(sw){const f=+sw.dataset.f;if(run)tick();
-  if(S.rem<1200&&!confirm("De klok van veld "+(S.per+1)+" staat op "+fmt(S.rem)+". Wisselen naar veld "+(f+1)+" en de klok op 20:00 zetten?"+(run?" De klok blijft lopen.":"")))return;
-  // Een lopende klok telt verder op het nieuwe veld
-  S.per=view=f;S.rem=1200;if(run)S.last=Date.now();save();render()}
+ const sw=t.closest(".sw");if(sw){if(goTo(+sw.dataset.f)){save();render()}}
 });
+// Klok naar een ander veld zetten; een lopende klok telt verder op het nieuwe veld
+function goTo(f){if(run)tick();
+ if(S.rem<1200&&!confirm("De klok van veld "+(S.per+1)+" staat op "+fmt(S.rem)+". Wisselen naar veld "+(f+1)+" en de klok op 20:00 zetten?"+(run?" De klok blijft lopen.":"")))return false;
+ S.per=view=f;S.rem=1200;if(run)S.last=Date.now();return true}
 // Keuzelijst om een speler op een positie te zetten, zonder naar de bank te moeten scrollen
 function openPick(f,s){
  pick=[f,s];const row=S.pl[f],cur=row[s];
@@ -63,21 +64,22 @@ function tick(){
  const n=Math.floor((Date.now()-S.last)/1000);
  for(let k=0;k<n&&run;k++){
   S.last+=1000;S.rem--;
-  S.pl[S.per].forEach(p=>{if(p!=null)S.sec[p]++});
+  S.pl[S.per].forEach(p=>{if(p!=null){S.sec[p]++;S.fsec[S.per][p]++}});
   if(S.rem<=0){stop();if(S.per<3){S.per++;S.rem=1200;view=S.per}else S.rem=0;render()}
  }
  if(n<1)return;
  $("clock").textContent=fmt(S.rem);
  document.querySelectorAll("[data-min]").forEach(el=>el.textContent=fmt(S.sec[+el.dataset.min]));
+ document.querySelectorAll("[data-fm]").forEach(el=>{const[f,p]=el.dataset.fm.split(",");el.textContent="⏱ "+fmt(S.fsec[f][p])});
  save();
 }
 async function lock(){try{if(run&&!wl&&navigator.wakeLock){wl=await navigator.wakeLock.request("screen");wl.onrelease=()=>{wl=null}}}catch(e){}}
 function loop(){run=setInterval(tick,250);lock()}
 function stop(){clearInterval(run);run=null;S.run=false;if(wl)wl.release();save()}
-$("go").onclick=()=>{if(!run&&S.rem>0){S.last=Date.now();S.run=true;save();loop();render()}};
+$("go").onclick=()=>{if(!run&&view!=S.per&&!goTo(view))return;if(!run&&S.rem>0){S.last=Date.now();S.run=true;save();loop();render()}};
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState=="visible"&&run){tick();lock()}});
 $("pa").onclick=()=>{stop();render()};
-$("rs").onclick=()=>{if(confirm("Tijd, spelersminuten en doelpunten resetten? (opstelling en namen blijven)")){stop();S.per=0;S.rem=1200;S.sec=Array(14).fill(0);S.goals=[];save();render()}};
+$("rs").onclick=()=>{if(confirm("Tijd, spelersminuten en doelpunten resetten? (opstelling en namen blijven)")){stop();S.per=0;S.rem=1200;S.sec=Array(14).fill(0);S.fsec=[0,1,2,3].map(()=>Array(14).fill(0));S.goals=[];save();render()}};
 $("pr").onclick=()=>window.print();
 // Donkere modus: volgt het toestel tot je zelf kiest
 const dark=matchMedia("(prefers-color-scheme: dark)");

@@ -34,6 +34,7 @@ button,.slot,.b .t,.fh{touch-action:manipulation;-webkit-tap-highlight-color:tra
 .slot{position:absolute;transform:translate(-50%,-50%);width:25%;padding:4px 0;z-index:1;text-align:center;cursor:pointer;font-size:10px;color:#fff}
 .empty{width:30px;height:30px;margin:0 auto;border:2px dashed #fff;border-radius:50%;opacity:.8}
 .lbl{display:block;text-shadow:0 1px 2px #000;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm{font-size:.9em;opacity:.9;font-variant-numeric:tabular-nums}
 .g1{position:absolute;top:-8px;right:-6px;background:#fff;color:#000;border-radius:50%;width:24px;height:24px;min-height:0;padding:0;font-size:14px;line-height:24px}
 .tok{position:relative;display:inline-block}
 #bench{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}

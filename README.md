@@ -7,7 +7,8 @@ Eenvoudige webapp om een voetbalwedstrijd van 80 minuten (4 × 20 min) te planne
 - Reservebank met 14 spelers (12 veldspelers + 2 keepers), namen aanpasbaar en bewaard
 - Aftelklok per periode met start, pauze en reset; automatische overgang naar het volgende veld
 - Klok en speelminuten blijven correct bij vergrendeld scherm, wisselen van app of herladen; het scherm blijft aan zolang de klok loopt
-- Speelminuten per speler en doelpuntenlijst
+- Speelminuten per speler: per veld (onder de speler op het veld) en in totaal (op de reservebank); alleen het lopende veld telt mee
+- Doelpuntenlijst
 - Printen van velden, spelers en doelpunten
 - Donkere modus (knop 🌙/☀️ rechtsboven; volgt standaard de instelling van het toestel)
 - Handig op de GSM: klok blijft bovenaan staan, tabbladen per veld, tik een positie om een speler te kiezen, als app op het beginscherm te zetten
