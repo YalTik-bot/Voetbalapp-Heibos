@@ -91,5 +91,24 @@ const dark=matchMedia("(prefers-color-scheme: dark)");
 function theme(){const t=S.theme||(dark.matches?"dark":"light");document.documentElement.dataset.theme=t;$("th").textContent=t=="dark"?"☀️":"🌙"}
 $("th").onclick=()=>{S.theme=document.documentElement.dataset.theme=="dark"?"light":"dark";save();theme()};
 dark.addEventListener("change",theme);theme();
+// Opstelling delen via een link: namen en posities zitten gecodeerd achter #o=
+const b64=s=>btoa(String.fromCharCode(...new TextEncoder().encode(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const unb64=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0)));
+$("sh").onclick=async()=>{
+ const url=location.href.split("#")[0]+"#o="+b64(JSON.stringify({n:S.names,p:S.pl}));
+ try{if(navigator.share){await navigator.share({title:"Opstelling K. Heibos",text:"Opstelling K. Heibos S.V. Kalmthout – open de link om ze over te nemen:",url});return}}catch(e){if(e.name=="AbortError")return}
+ try{await navigator.clipboard.writeText(url);alert("Link gekopieerd. Plak hem in WhatsApp, mail, …")}catch(e){prompt("Kopieer deze link:",url)}
+};
+function loadShared(){
+ const m=location.hash.match(/^#o=([\w-]+)$/);if(!m)return;
+ history.replaceState(null,"",location.href.split("#")[0]);
+ let d;try{d=JSON.parse(unb64(m[1]))}catch(e){}
+ const ok=d&&Array.isArray(d.n)&&d.n.length==N&&Array.isArray(d.p)&&d.p.length==4&&d.p.every(f=>Array.isArray(f)&&f.length==8&&f.every(i=>i===null||Number.isInteger(i)&&i>=0&&i<N));
+ if(!ok){alert("Deze gedeelde opstelling kan niet geopend worden.");return}
+ if(!confirm("Gedeelde opstelling overnemen? Je huidige namen en opstelling worden vervangen (klok, minuten en doelpunten blijven)."))return;
+ S.names=d.n.map(x=>String(x).slice(0,20)||"Speler");S.pl=d.p;save();
+}
+loadShared();
+addEventListener("hashchange",()=>{loadShared();render()});
 render();
 if(S.run&&S.rem>0){loop();tick()}else S.run=false;
