@@ -18,7 +18,7 @@ function render(){
  $("clock").textContent=fmt(S.rem);
  $("per").textContent="Veld "+(S.per+1)+" · "+S.per*20+"–"+(S.per+1)*20+" min";
  $("tabs").innerHTML=S.pl.map((f,fi)=>`<button class="tab ${fi==view?"on":""}" data-v="${fi}">Veld ${fi+1}${fi==S.per?" ●":""}<small>${fi*20}–${fi*20+20}'</small></button>`).join("");
- $("fields").innerHTML=S.pl.map((f,fi)=>`<div class="fw ${fi==view?"vis":""}"><div class="fh ${fi==S.per?"act":""}" data-f="${fi}"><span>Veld ${fi+1}</span><span>${fi*20}–${fi*20+20} min</span></div><div class="pitch ${fi==S.per?"act":""}">`+
+ $("fields").innerHTML=S.pl.map((f,fi)=>`<div class="fw ${fi==view?"vis":""}"><div class="fh ${fi==S.per?"act":""}"><span>Veld ${fi+1} <small>${fi*20}–${fi*20+20} min</small></span>${fi==S.per?'<span class="now">● Nu bezig</span>':`<button class="sw" data-f="${fi}" ${run?'disabled title="Pauzeer eerst de klok"':""}>⇄ Naar dit veld</button>`}</div><div class="pitch ${fi==S.per?"act":""}">`+
   POS.map((p,si)=>{const pi=f[si];return `<div class="slot" style="left:${p[1]}%;top:${p[2]}%" data-f="${fi}" data-s="${si}">`+
   (pi==null?'<div class="empty"></div>':`<span class="tok">${kit(pi)}<button class="g1 noprint" data-goal="${fi},${pi}">⚽</button></span><span class="lbl">${esc(S.names[pi])}</span>`)+
   `<span class="lbl" style="opacity:.85">${pi==null?p[0]:""}</span></div>`}).join("")+`</div></div>`).join("");
@@ -41,7 +41,9 @@ document.addEventListener("click",e=>{
   if(i<0)row[s]=null;else{const o=row.indexOf(i);if(o>-1)row[o]=null;row[s]=i}
   $("pick").close();save();render();return}
  if(t.dataset.close||t.id=="pick"){$("pick").close();return}
- const fh=t.closest(".fh");if(fh&&!run){S.per=view=+fh.dataset.f;S.rem=1200;save();render()}
+ const sw=t.closest(".sw");if(sw&&!run){const f=+sw.dataset.f;
+  if(S.rem<1200&&!confirm("De klok van veld "+(S.per+1)+" staat op "+fmt(S.rem)+". Wisselen naar veld "+(f+1)+" en de klok op 20:00 zetten?"))return;
+  S.per=view=f;S.rem=1200;save();render()}
 });
 // Keuzelijst om een speler op een positie te zetten, zonder naar de bank te moeten scrollen
 function openPick(f,s){
@@ -71,10 +73,15 @@ function tick(){
 async function lock(){try{if(run&&!wl&&navigator.wakeLock){wl=await navigator.wakeLock.request("screen");wl.onrelease=()=>{wl=null}}}catch(e){}}
 function loop(){run=setInterval(tick,250);lock()}
 function stop(){clearInterval(run);run=null;S.run=false;if(wl)wl.release();save()}
-$("go").onclick=()=>{if(!run&&S.rem>0){S.last=Date.now();S.run=true;save();loop()}};
+$("go").onclick=()=>{if(!run&&S.rem>0){S.last=Date.now();S.run=true;save();loop();render()}};
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState=="visible"&&run){tick();lock()}});
-$("pa").onclick=stop;
+$("pa").onclick=()=>{stop();render()};
 $("rs").onclick=()=>{if(confirm("Tijd, spelersminuten en doelpunten resetten? (opstelling en namen blijven)")){stop();S.per=0;S.rem=1200;S.sec=Array(14).fill(0);S.goals=[];save();render()}};
 $("pr").onclick=()=>window.print();
+// Donkere modus: volgt het toestel tot je zelf kiest
+const dark=matchMedia("(prefers-color-scheme: dark)");
+function theme(){const t=S.theme||(dark.matches?"dark":"light");document.documentElement.dataset.theme=t;$("th").textContent=t=="dark"?"☀️":"🌙"}
+$("th").onclick=()=>{S.theme=document.documentElement.dataset.theme=="dark"?"light":"dark";save();theme()};
+dark.addEventListener("change",theme);theme();
 render();
 if(S.run&&S.rem>0){loop();tick()}else S.run=false;
