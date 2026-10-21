@@ -1,0 +1,9 @@
+{
+  "name": "K. Heibos S.V. Kalmthout – Opstelling",
+  "short_name": "Heibos",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f4f1f8",
+  "theme_color": "#6a2c91",
+  "icons": [{ "src": "logo.jpg", "sizes": "512x512", "type": "image/jpeg" }]
+}

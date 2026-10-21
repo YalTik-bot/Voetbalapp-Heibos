@@ -4,24 +4,25 @@ let S={names:Array.from({length:14},(_,i)=>i<12?"Speler "+(i+1):"Keeper "+(i-11)
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.names)S=Object.assign(S,s)}catch(e){}
 const DEF_LOGO="logo.jpg";
 if(!S.logo)S.logo=DEF_LOGO;
-let sel=null,run=null,wl=null;
+let sel=null,run=null,wl=null,view=S.per,pick=null;
 const $=id=>document.getElementById(id);
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const isK=i=>i>=12;
-function kit(i){const c=isK(i)?"#111":"#7b2fa8";
-return `<svg width="34" height="34" viewBox="0 0 34 34"><path d="M10 3l-8 6 4 6 3-2v9h16v-9l3 2 4-6-8-6c-1 3-3 4-7 4s-6-1-7-4z" fill="${c}" stroke="#fff" stroke-width="1"/><rect x="9" y="23" width="16" height="9" rx="2" fill="${isK(i)?"#111":"#1f8a3a"}" stroke="#fff" stroke-width="1"/></svg>`}
+function kit(i,z=34){const c=isK(i)?"#111":"#7b2fa8";
+return `<svg width="${z}" height="${z}" viewBox="0 0 34 34"><path d="M10 3l-8 6 4 6 3-2v9h16v-9l3 2 4-6-8-6c-1 3-3 4-7 4s-6-1-7-4z" fill="${c}" stroke="#fff" stroke-width="1"/><rect x="9" y="23" width="16" height="9" rx="2" fill="${isK(i)?"#111":"#1f8a3a"}" stroke="#fff" stroke-width="1"/></svg>`}
 const fmt=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
 function minute(){return S.per*20+Math.min(20,Math.floor((1200-S.rem)/60)+1)}
 function render(){
  if(S.logo){$("logo").innerHTML='<img src="'+S.logo+'" alt="logo"><input id="lf" type="file" accept="image/*" hidden>';$("lf").onchange=up}
  $("clock").textContent=fmt(S.rem);
  $("per").textContent="Veld "+(S.per+1)+" · "+S.per*20+"–"+(S.per+1)*20+" min";
- $("fields").innerHTML=S.pl.map((f,fi)=>`<div><div class="fh ${fi==S.per?"act":""}" data-f="${fi}"><span>Veld ${fi+1}</span><span>${fi*20}–${fi*20+20} min</span></div><div class="pitch ${fi==S.per?"act":""}">`+
+ $("tabs").innerHTML=S.pl.map((f,fi)=>`<button class="tab ${fi==view?"on":""}" data-v="${fi}">Veld ${fi+1}${fi==S.per?" ●":""}<small>${fi*20}–${fi*20+20}'</small></button>`).join("");
+ $("fields").innerHTML=S.pl.map((f,fi)=>`<div class="fw ${fi==view?"vis":""}"><div class="fh ${fi==S.per?"act":""}" data-f="${fi}"><span>Veld ${fi+1}</span><span>${fi*20}–${fi*20+20} min</span></div><div class="pitch ${fi==S.per?"act":""}">`+
   POS.map((p,si)=>{const pi=f[si];return `<div class="slot" style="left:${p[1]}%;top:${p[2]}%" data-f="${fi}" data-s="${si}">`+
   (pi==null?'<div class="empty"></div>':`<span class="tok">${kit(pi)}<button class="g1 noprint" data-goal="${fi},${pi}">⚽</button></span><span class="lbl">${esc(S.names[pi])}</span>`)+
   `<span class="lbl" style="opacity:.85">${pi==null?p[0]:""}</span></div>`}).join("")+`</div></div>`).join("");
- $("bench").innerHTML=S.names.map((n,i)=>`<div class="b ${sel===i?"sel":""}"><div class="t" data-b="${i}">${kit(i)}<br><small>${isK(i)?"Keeper":"Speler"}</small></div><input value="${esc(n)}" data-n="${i}" maxlength="20"><small>⏱ <span data-min="${i}">${fmt(S.sec[i])}</span></small></div>`).join("");
+ $("bench").innerHTML=S.names.map((n,i)=>`<div class="b ${sel===i?"sel":""} ${S.pl[view].includes(i)?"on":""}"><div class="t" data-b="${i}">${kit(i)}<br><small>${isK(i)?"Keeper":"Speler"}</small></div><input value="${esc(n)}" data-n="${i}" maxlength="20"><small>⏱ <span data-min="${i}">${fmt(S.sec[i])}</span></small></div>`).join("");
  renderGoals();
 }
 function renderGoals(){
@@ -34,10 +35,23 @@ document.addEventListener("click",e=>{
  const b=t.closest("[data-b]");if(b){sel=sel===+b.dataset.b?null:+b.dataset.b;render();return}
  const sl=t.closest(".slot");if(sl){const f=+sl.dataset.f,s=+sl.dataset.s;
   if(sel!=null){const row=S.pl[f];const o=row.indexOf(sel);if(o>-1)row[o]=null;row[s]=sel;sel=null}
-  else row_clear(f,s);save();render();return}
- const fh=t.closest(".fh");if(fh&&!run){S.per=+fh.dataset.f;S.rem=1200;save();render()}
+  else{openPick(f,s);return}save();render();return}
+ const v=t.closest("[data-v]");if(v){view=+v.dataset.v;render();return}
+ const pk=t.closest("[data-pick]");if(pk&&pick){const[f,s]=pick,i=+pk.dataset.pick,row=S.pl[f];
+  if(i<0)row[s]=null;else{const o=row.indexOf(i);if(o>-1)row[o]=null;row[s]=i}
+  $("pick").close();save();render();return}
+ if(t.dataset.close||t.id=="pick"){$("pick").close();return}
+ const fh=t.closest(".fh");if(fh&&!run){S.per=view=+fh.dataset.f;S.rem=1200;save();render()}
 });
-function row_clear(f,s){S.pl[f][s]=null}
+// Keuzelijst om een speler op een positie te zetten, zonder naar de bank te moeten scrollen
+function openPick(f,s){
+ pick=[f,s];const row=S.pl[f],cur=row[s];
+ const ids=S.names.map((n,i)=>i);if(s==0)ids.sort((a,b)=>isK(b)-isK(a));
+ $("pt").textContent="Veld "+(f+1)+" · "+POS[s][0];
+ $("plist").innerHTML=(cur!=null?`<button class="pi o" data-pick="-1">✕ Positie leegmaken</button>`:"")+ids.map(i=>{const o=row.indexOf(i);
+  return `<button class="pi ${i===cur?"cur":""}" data-pick="${i}">${kit(i,26)}<span>${esc(S.names[i])}</span><small>${o>-1?POS[o][0]:""}</small></button>`}).join("");
+ $("pick").showModal();
+}
 document.addEventListener("change",e=>{if(e.target.dataset.n!=null){S.names[+e.target.dataset.n]=e.target.value||"Speler";save();render()}});
 function up(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement("canvas");const k=Math.min(1,256/Math.max(im.width,im.height));c.width=im.width*k;c.height=im.height*k;c.getContext("2d").drawImage(im,0,0,c.width,c.height);S.logo=c.toDataURL("image/png");save();render()};im.src=r.result};r.readAsDataURL(f)}
 $("lf").onchange=up;
@@ -47,7 +61,7 @@ function tick(){
  for(let k=0;k<n&&run;k++){
   S.last+=1000;S.rem--;
   S.pl[S.per].forEach(p=>{if(p!=null)S.sec[p]++});
-  if(S.rem<=0){stop();if(S.per<3){S.per++;S.rem=1200}else S.rem=0;render()}
+  if(S.rem<=0){stop();if(S.per<3){S.per++;S.rem=1200;view=S.per}else S.rem=0;render()}
  }
  if(n<1)return;
  $("clock").textContent=fmt(S.rem);
