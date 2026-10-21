@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="nl"><head><meta charset="utf-8">
+<link rel="icon" href="logo.jpg">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>K. Heibos S.V. Kalmthout – Opstelling</title>
+<link rel="stylesheet" href="style.css"></head><body>
+<header><label id="logo" title="Klik om je logo te kiezen"><span id="lt">K. Heibos S.V.<br>Kalmthout</span><input id="lf" type="file" accept="image/*" hidden></label>
+<div><h1>K. Heibos S.V. Kalmthout</h1><small>Opstelling &amp; wedstrijdklok</small></div></header>
+
+<div class="card noprint bar">
+ <div id="clock">20:00</div>
+ <button class="g" id="go">▶ Start</button><button class="o" id="pa">⏸ Pauze</button>
+ <button class="o" id="rs">↺ Reset wedstrijd</button><button id="pr">🖨 Printen</button>
+ <span id="per" class="hint"></span>
+</div>
+<div class="hint noprint" style="margin-bottom:8px">Tik een speler op de bank, daarna een positie op een veld. Tik een speler op het veld om hem terug te zetten. ⚽ = doelpunt. Tik een veldtitel om de periode te kiezen (bij pauze).</div>
+
+<div id="fields"></div>
+
+<div class="card" style="margin-top:12px"><b>Reservebank</b> <small>(namen aanpasbaar, worden bewaard)</small><div id="bench" style="margin-top:8px"></div></div>
+<div class="card"><b>Doelpunten</b><table id="goals"></table></div>
+
+<script src="app.js"></script></body></html>
