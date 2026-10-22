@@ -51,6 +51,24 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
 #plist{outline:0;display:flex;flex-direction:column;gap:6px;padding:10px 12px;overflow:auto}
 .pi{display:flex;align-items:center;gap:10px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);text-align:left;padding:6px 10px}
 .pi span{flex:1}.pi small{font-size:12px}.pi.cur{border:2px solid var(--pu)}.pi.o{background:#6f6880;color:#fff;justify-content:center}
+#match{padding:8px 10px}
+.sb{display:flex;align-items:center;justify-content:center;gap:12px;font-weight:700}
+.sb .tm{flex:1;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sb .tm:first-child{text-align:right}
+#score{font-size:30px;font-variant-numeric:tabular-nums;background:var(--bg);border-radius:8px;padding:2px 12px;white-space:nowrap}
+.mi{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px;color:var(--mut);font-size:13px;flex-wrap:wrap}
+.mi button{min-height:36px;padding:6px 10px;font-size:14px}
+tr.opp td{color:var(--mut)}
+.tools{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}.tools button{min-height:36px;padding:6px 12px;font-size:14px}
+.mvh{display:none}.moving .mvh{display:inline}
+.moving .slot{touch-action:none;cursor:grab;outline:2px dashed rgba(255,255,255,.8);border-radius:10px;background:rgba(0,0,0,.12)}
+.moving .slot.drag{cursor:grabbing;background:rgba(0,0,0,.3);z-index:3}.moving .g1{display:none}
+.f11 .slot{width:24%}
+.mf{display:flex;flex-direction:column;gap:12px;padding:16px}
+.mf label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--mut)}
+.mf input[type=date],.mf input[type=text]{font-size:16px;padding:9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);min-height:44px}
+.mf fieldset{border:1px solid var(--bd);border-radius:8px;display:flex;gap:16px;padding:8px 12px}.mf legend{font-size:14px;color:var(--mut)}
+.mf .rd{flex-direction:row;align-items:center;gap:6px;color:var(--tx);font-size:16px}.rd input{width:20px;height:20px}
+.mb{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 @media (max-width:699px){
  body{padding:8px}header{margin-bottom:8px}#logo{width:48px;height:48px}h1{font-size:16px}
  .bar{padding:8px;margin:0 -2px 10px}#clock{font-size:clamp(26px,9vw,34px);line-height:1}.tx{display:none}
@@ -59,9 +77,11 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
  #tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
  .fw:not(.vis){display:none}
  .slot{font-size:12px}.empty{width:36px;height:36px}
+ .f11 .slot{font-size:10px}.f11 .empty{width:30px;height:30px}.f11 .tok svg{width:28px;height:28px}
+ #score{font-size:26px}.sb .tm{font-size:14px}
  #bench{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}
 }
 @media print{:root,:root[data-theme],:root:not([data-theme]){--bg:#fff;--card:#fff;--tx:#000;--mut:#555;--bd:#ccc;--put:#6a2c91}body{background:#fff;color:#000;padding:0}#th,.sw,.now{display:none}
 /* 4 velden samen op de eerste pagina (A4), bank en doelpunten op de volgende */
-@page{margin:10mm}#fields{grid-template-columns:repeat(2,80mm)!important;justify-content:center;gap:4mm 8mm}.fw,.card{break-inside:avoid}.fh{min-height:0;margin-bottom:2px}.fw{display:block!important}.slot{font-size:10px}.b.on{background:none;border-color:var(--bd)}.noprint{display:none!important}.card{border:0}#fields{grid-template-columns:1fr 1fr}.pitch.act{outline:0}
+@page{margin:10mm}#fields{grid-template-columns:repeat(2,80mm)!important;justify-content:center;gap:4mm 8mm}.fw,.card{break-inside:avoid}.fh{min-height:0;margin-bottom:2px}.fw{display:block!important}.slot{font-size:10px}.b.on{background:none;border-color:var(--bd)}.noprint{display:none!important}.card{border:0}#match{padding:0 0 4mm}#fields{grid-template-columns:1fr 1fr}.pitch.act{outline:0}
 .pitch,.tok svg{-webkit-print-color-adjust:exact;print-color-adjust:exact}.b input{border:0}}

@@ -1,7 +1,9 @@
-const POS=[["Keeper",50,9],["Laatste man",50,27],["Linksachter",20,43],["Rechtsachter",80,43],["Mid",50,59],["Linksvoor",20,76],["Rechtsvoor",80,76],["Spits",50,90]];
+const POS8=[["Keeper",50,9],["Laatste man",50,27],["Linksachter",20,43],["Rechtsachter",80,43],["Mid",50,59],["Linksvoor",20,76],["Rechtsvoor",80,76],["Spits",50,90]];
+const POS11=[["Keeper",50,8],["Linksachter",13,28],["Centrale verdediger links",37,24,"CV links"],["Centrale verdediger rechts",63,24,"CV rechts"],["Rechtsachter",87,28],["Linksmidden",18,52],["Centrale mid",50,48],["Rechtsmidden",82,52],["Linksbuiten",16,77],["Spits",50,88],["Rechtsbuiten",84,77]];
 const KEY="khs_v1";
 const NP=14,N=NP+2; // 14 veldspelers + 2 keepers
-let S={names:Array.from({length:N},(_,i)=>i<NP?"Speler "+(i+1):"Keeper "+(i-NP+1)),pl:[0,1,2,3].map(()=>Array(8).fill(null)),sec:Array(N).fill(0),fsec:[0,1,2,3].map(()=>Array(N).fill(0)),goals:[],logo:"",per:0,rem:1200,run:false,last:0};
+const empty=n=>[0,1,2,3].map(()=>Array(n).fill(null));
+let S={names:Array.from({length:N},(_,i)=>i<NP?"Speler "+(i+1):"Keeper "+(i-NP+1)),pl:empty(8),sec:Array(N).fill(0),fsec:[0,1,2,3].map(()=>Array(N).fill(0)),goals:[],og:[],opp:"",date:"",fmt:8,lineups:{},xy:{},logo:"",per:0,rem:1200,run:false,last:0};
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.names)S=Object.assign(S,s)}catch(e){}
 // Oude versie had 12 veldspelers: keepers (12, 13) schuiven op naar 14, 15 en er komen 2 veldspelers bij
 if(S.names.length==14){const m=i=>i==null?null:i<12?i+0:i+2,ins=a=>[...a.slice(0,12),0,0,...a.slice(12)];
@@ -9,7 +11,8 @@ if(S.names.length==14){const m=i=>i==null?null:i<12?i+0:i+2,ins=a=>[...a.slice(0
  S.fsec=S.fsec.map(a=>a.length==14?ins(a):a);S.pl=S.pl.map(f=>f.map(m));S.goals.forEach(g=>g.p=m(g.p))}
 const DEF_LOGO="logo.jpg";
 if(!S.logo)S.logo=DEF_LOGO;
-let sel=null,run=null,wl=null,view=S.per,pick=null;
+let POS=S.fmt==11?POS11:POS8;
+let sel=null,run=null,wl=null,view=S.per,pick=null,move=false,drag=null;
 const $=id=>document.getElementById(id);
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -18,27 +21,45 @@ function kit(i,z=34){const c=isK(i)?"#111":"#7b2fa8";
 return `<svg width="${z}" height="${z}" viewBox="0 0 34 34"><path d="M10 3l-8 6 4 6 3-2v9h16v-9l3 2 4-6-8-6c-1 3-3 4-7 4s-6-1-7-4z" fill="${c}" stroke="#fff" stroke-width="1"/><rect x="9" y="23" width="16" height="9" rx="2" fill="${isK(i)?"#111":"#1f8a3a"}" stroke="#fff" stroke-width="1"/></svg>`}
 const fmt=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
 function minute(){return S.per*20+Math.min(20,Math.floor((1200-S.rem)/60)+1)}
+const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+const longDate=s=>{if(!s)return"";const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d).toLocaleDateString("nl-BE",{weekday:"long",day:"numeric",month:"long",year:"numeric"})};
+const oppName=()=>S.opp||"Tegenstander";
+const score=()=>S.goals.length+" – "+S.og.length;
+// Verschoven posities per spelvorm en per veld; anders de standaardplaats
+const xyOf=f=>((S.xy[S.fmt]=S.xy[S.fmt]||[{},{},{},{}])[f]);
+const at=(f,s)=>xyOf(f)[s]||[POS[s][1],POS[s][2]];
 function render(){
  if(S.logo){$("logo").innerHTML='<img src="'+S.logo+'" alt="logo"><input id="lf" type="file" accept="image/*" hidden>';$("lf").onchange=up}
  $("clock").textContent=fmt(S.rem);
- $("per").textContent="Veld "+(S.per+1)+" · "+S.per*20+"–"+(S.per+1)*20+" min";
+ $("per").textContent="Veld "+(S.per+1)+" · "+S.per*20+"–"+(S.per+1)*20+" min · "+score().replace(" – ","–");
+ $("score").textContent=score();$("oppn").textContent=oppName();$("mdate").textContent=longDate(S.date)||"Geen datum gekozen";
+ $("mfmt").textContent=S.fmt+" spelers";
+ document.body.classList.toggle("moving",move);document.body.classList.toggle("f11",S.fmt==11);
+ $("mv").textContent=move?"✓ Klaar met verschuiven":"✥ Posities verschuiven";$("mv").className=move?"g":"o";
  $("tabs").innerHTML=S.pl.map((f,fi)=>`<button class="tab ${fi==view?"on":""}" data-v="${fi}">Veld ${fi+1}${fi==S.per?" ●":""}<small>${fi*20}–${fi*20+20}'</small></button>`).join("");
- $("fields").innerHTML=S.pl.map((f,fi)=>`<div class="fw ${fi==view?"vis":""}"><div class="fh ${fi==S.per?"act":""}"><span>Veld ${fi+1} <small>${fi*20}–${fi*20+20} min</small></span>${fi==S.per?'<span class="now">● Nu bezig</span>':`<button class="sw" data-f="${fi}">⇄ Naar dit veld</button>`}</div><div class="pitch ${fi==S.per?"act":""}">`+
-  POS.map((p,si)=>{const pi=f[si];return `<div class="slot" style="left:${p[1]}%;top:${p[2]}%" data-f="${fi}" data-s="${si}">`+
+ $("fields").innerHTML=S.pl.map((f,fi)=>`<div class="fw ${fi==view?"vis":""}"><div class="fh ${fi==S.per?"act":""}"><span>Veld ${fi+1} <small>${fi*20}–${fi*20+20} min</small></span>${move?`<button class="sw" data-rxy="${fi}">↺ Standaardposities</button>`:fi==S.per?'<span class="now">● Nu bezig</span>':`<button class="sw" data-f="${fi}">⇄ Naar dit veld</button>`}</div><div class="pitch ${fi==S.per?"act":""}">`+
+  POS.map((p,si)=>{const pi=f[si],[x,y]=at(fi,si);return `<div class="slot" style="left:${x}%;top:${y}%" data-f="${fi}" data-s="${si}">`+
   (pi==null?'<div class="empty"></div>':`<span class="tok">${kit(pi)}<button class="g1 noprint" data-goal="${fi},${pi}">⚽</button></span><span class="lbl">${esc(S.names[pi])}</span><span class="lbl fm" data-fm="${fi},${pi}">⏱ ${fmt(S.fsec[fi][pi])}</span>`)+
-  `<span class="lbl" style="opacity:.85">${pi==null?p[0]:""}</span></div>`}).join("")+`</div></div>`).join("");
+  `<span class="lbl" style="opacity:.85">${pi==null?p[3]||p[0]:""}</span></div>`}).join("")+`</div></div>`).join("");
  $("bench").innerHTML=S.names.map((n,i)=>`<div class="b ${sel===i?"sel":""} ${S.pl[view].includes(i)?"on":""}"><div class="t" data-b="${i}">${kit(i)}<br><small>${isK(i)?"Keeper":"Speler"}</small></div><input value="${esc(n)}" data-n="${i}" maxlength="20"><small>⏱ <span data-min="${i}">${fmt(S.sec[i])}</span></small></div>`).join("");
  renderGoals();
 }
+// Doelpunten van beide ploegen samen, met de stand na elk doelpunt
 function renderGoals(){
- $("goals").innerHTML=S.goals.length?"<tr><th>Min</th><th>Speler</th><th class=noprint></th></tr>"+S.goals.map((g,i)=>`<tr><td>${g.m}'</td><td>⚽ ${esc(S.names[g.p])}</td><td class="noprint"><button class="x" data-del="${i}">✕</button></td></tr>`).join(""):"<tr><td class='hint'>Nog geen doelpunten.</td></tr>";
+ const all=[...S.goals.map((g,i)=>({...g,i,us:1})),...S.og.map((g,i)=>({...g,i,us:0}))].sort((a,b)=>a.m-b.m||a.t-b.t);
+ let h=0,a=0;
+ $("goals").innerHTML=all.length?"<tr><th>Min</th><th>Doelpunt</th><th>Stand</th><th class=noprint></th></tr>"+all.map(g=>{g.us?h++:a++;
+  return `<tr class="${g.us?"":"opp"}"><td>${g.m}'</td><td>⚽ ${g.us?esc(S.names[g.p]):esc(oppName())}</td><td>${h}–${a}</td><td class="noprint"><button class="x" data-${g.us?"del":"dog"}="${g.i}">✕</button></td></tr>`}).join(""):"<tr><td class='hint'>Nog geen doelpunten.</td></tr>";
+ $("score").textContent=score();$("per").textContent="Veld "+(S.per+1)+" · "+S.per*20+"–"+(S.per+1)*20+" min · "+score().replace(" – ","–");
 }
 document.addEventListener("click",e=>{
  const t=e.target;
- if(t.dataset.goal){const[f,p]=t.dataset.goal.split(",").map(Number);S.goals.push({p,m:f==S.per?minute():f*20+20});S.goals.sort((a,b)=>a.m-b.m);save();renderGoals();return}
+ if(t.dataset.goal&&!move){const[f,p]=t.dataset.goal.split(",").map(Number);S.goals.push({p,m:f==S.per?minute():f*20+20,t:Date.now()});save();renderGoals();return}
  if(t.dataset.del){S.goals.splice(+t.dataset.del,1);save();renderGoals();return}
+ if(t.dataset.dog){S.og.splice(+t.dataset.dog,1);save();renderGoals();return}
+ const rx=t.closest("[data-rxy]");if(rx){const f=+rx.dataset.rxy;xyOf(f);S.xy[S.fmt][f]={};save();render();return}
  const b=t.closest("[data-b]");if(b){sel=sel===+b.dataset.b?null:+b.dataset.b;render();return}
- const sl=t.closest(".slot");if(sl){const f=+sl.dataset.f,s=+sl.dataset.s;
+ const sl=t.closest(".slot");if(sl){if(move)return;const f=+sl.dataset.f,s=+sl.dataset.s;
   if(sel!=null){const row=S.pl[f];const o=row.indexOf(sel);if(o>-1)row[o]=null;row[s]=sel;sel=null}
   else{openPick(f,s);return}save();render();return}
  const v=t.closest("[data-v]");if(v){view=+v.dataset.v;render();return}
@@ -48,6 +69,15 @@ document.addEventListener("click",e=>{
  if(t.dataset.close||t.id=="pick"){$("pick").close();return}
  const sw=t.closest(".sw");if(sw){if(goTo(+sw.dataset.f)){save();render()}}
 });
+// Posities verschuiven: sleep een positie naar een nieuwe plaats (alleen in verschuifmodus)
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+document.addEventListener("pointerdown",e=>{if(!move)return;const sl=e.target.closest(".slot");if(!sl)return;
+ e.preventDefault();drag={sl,f:+sl.dataset.f,s:+sl.dataset.s,r:sl.parentElement.getBoundingClientRect()};sl.classList.add("drag")});
+addEventListener("pointermove",e=>{if(!drag)return;e.preventDefault();
+ drag.x=Math.round(clamp((e.clientX-drag.r.left)/drag.r.width*100,6,94));drag.y=Math.round(clamp((e.clientY-drag.r.top)/drag.r.height*100,5,95));
+ drag.sl.style.left=drag.x+"%";drag.sl.style.top=drag.y+"%"},{passive:false});
+addEventListener("pointerup",()=>{if(!drag)return;if(drag.x!=null){xyOf(drag.f)[drag.s]=[drag.x,drag.y];save()}drag.sl.classList.remove("drag");drag=null});
+$("mv").onclick=()=>{move=!move;sel=null;render()};
 // Klok naar een ander veld zetten; een lopende klok telt verder op het nieuwe veld
 function goTo(f){if(run)tick();
  if(S.rem<1200&&!confirm("De klok van veld "+(S.per+1)+" staat op "+fmt(S.rem)+". Wisselen naar veld "+(f+1)+" en de klok op 20:00 zetten?"+(run?" De klok blijft lopen.":"")))return false;
@@ -84,31 +114,51 @@ function stop(){clearInterval(run);run=null;S.run=false;if(wl)wl.release();save(
 $("go").onclick=()=>{if(!run&&view!=S.per&&!goTo(view))return;if(!run&&S.rem>0){S.last=Date.now();S.run=true;save();loop();render()}};
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState=="visible"&&run){tick();lock()}});
 $("pa").onclick=()=>{stop();render()};
-$("rs").onclick=()=>{if(confirm("Tijd, spelersminuten en doelpunten resetten? (opstelling en namen blijven)")){stop();S.per=0;S.rem=1200;S.sec=Array(N).fill(0);S.fsec=[0,1,2,3].map(()=>Array(N).fill(0));S.goals=[];save();render()}};
+function resetMatch(){stop();S.per=view=0;S.rem=1200;S.sec=Array(N).fill(0);S.fsec=[0,1,2,3].map(()=>Array(N).fill(0));S.goals=[];S.og=[]}
+$("rs").onclick=()=>{if(confirm("Tijd, spelersminuten en doelpunten (ook van de tegenstander) resetten? (opstelling en namen blijven)")){resetMatch();save();render()}};
 $("pr").onclick=()=>window.print();
+// Doelpunt van de tegenstander, op de minuut van de lopende klok
+$("og").onclick=()=>{if(run)tick();S.og.push({f:S.per,m:minute(),t:Date.now()});save();renderGoals()};
+// Spelvorm 8 of 11: elke spelvorm bewaart zijn eigen opstelling
+function setFmt(n){if(n==S.fmt)return;S.lineups[S.fmt]=S.pl;S.fmt=n;S.pl=S.lineups[n]||empty(n);POS=n==11?POS11:POS8}
+// Wedstrijdgegevens: verschijnt bij het opstarten en via ✎
+function openMatch(first){
+ $("fdate").value=S.date||today();$("fopp").value=S.opp;$("f"+S.fmt).checked=true;
+ $("mtitle").textContent=first?"Welkom! Welke wedstrijd?":"Wedstrijd aanpassen";
+ $("mdlg").showModal();
+}
+function applyMatch(){S.date=$("fdate").value;S.opp=$("fopp").value.trim().slice(0,30);setFmt($("f11").checked?11:8)}
+$("fok").onclick=()=>{applyMatch();$("mdlg").close();save();render()};
+$("fnew").onclick=()=>{if(!confirm("Nieuwe wedstrijd starten? Klok, speelminuten en doelpunten gaan op nul. Namen en opstelling blijven."))return;applyMatch();resetMatch();$("mdlg").close();save();render()};
+$("me").onclick=()=>openMatch(false);
 // Donkere modus: volgt het toestel tot je zelf kiest
 const dark=matchMedia("(prefers-color-scheme: dark)");
 function theme(){const t=S.theme||(dark.matches?"dark":"light");document.documentElement.dataset.theme=t;$("th").textContent=t=="dark"?"☀️":"🌙"}
 $("th").onclick=()=>{S.theme=document.documentElement.dataset.theme=="dark"?"light":"dark";save();theme()};
 dark.addEventListener("change",theme);theme();
-// Opstelling delen via een link: namen en posities zitten gecodeerd achter #o=
+// Opstelling delen via een link: namen, spelvorm, posities en wedstrijd zitten gecodeerd achter #o=
 const b64=s=>btoa(String.fromCharCode(...new TextEncoder().encode(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 const unb64=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0)));
 $("sh").onclick=async()=>{
- const url=location.href.split("#")[0]+"#o="+b64(JSON.stringify({n:S.names,p:S.pl}));
- try{if(navigator.share){await navigator.share({title:"Opstelling K. Heibos",text:"Opstelling K. Heibos S.V. Kalmthout – open de link om ze over te nemen:",url});return}}catch(e){if(e.name=="AbortError")return}
+ const url=location.href.split("#")[0]+"#o="+b64(JSON.stringify({n:S.names,p:S.pl,f:S.fmt,xy:S.xy[S.fmt]||null,o:S.opp,d:S.date}));
+ try{if(navigator.share){await navigator.share({title:"Opstelling K. Heibos",text:"Opstelling K. Heibos S.V. Kalmthout"+(S.opp?" tegen "+S.opp:"")+" – open de link om ze over te nemen:",url});return}}catch(e){if(e.name=="AbortError")return}
  try{await navigator.clipboard.writeText(url);alert("Link gekopieerd. Plak hem in WhatsApp, mail, …")}catch(e){prompt("Kopieer deze link:",url)}
 };
 function loadShared(){
- const m=location.hash.match(/^#o=([\w-]+)$/);if(!m)return;
+ const m=location.hash.match(/^#o=([\w-]+)$/);if(!m)return false;
  history.replaceState(null,"",location.href.split("#")[0]);
  let d;try{d=JSON.parse(unb64(m[1]))}catch(e){}
- const ok=d&&Array.isArray(d.n)&&d.n.length==N&&Array.isArray(d.p)&&d.p.length==4&&d.p.every(f=>Array.isArray(f)&&f.length==8&&f.every(i=>i===null||Number.isInteger(i)&&i>=0&&i<N));
- if(!ok){alert("Deze gedeelde opstelling kan niet geopend worden.");return}
- if(!confirm("Gedeelde opstelling overnemen? Je huidige namen en opstelling worden vervangen (klok, minuten en doelpunten blijven)."))return;
- S.names=d.n.map(x=>String(x).slice(0,20)||"Speler");S.pl=d.p;save();
+ const n=d&&d.f==11?11:8;
+ const ok=d&&Array.isArray(d.n)&&d.n.length==N&&Array.isArray(d.p)&&d.p.length==4&&d.p.every(f=>Array.isArray(f)&&f.length==n&&f.every(i=>i===null||Number.isInteger(i)&&i>=0&&i<N));
+ if(!ok){alert("Deze gedeelde opstelling kan niet geopend worden.");return true}
+ if(!confirm("Gedeelde opstelling overnemen"+(d.o?" (tegen "+d.o+")":"")+"? Je huidige namen en opstelling worden vervangen (klok, minuten en doelpunten blijven)."))return true;
+ S.names=d.n.map(x=>String(x).slice(0,20)||"Speler");setFmt(n);S.pl=d.p;
+ const xy=Array.isArray(d.xy)&&d.xy.length==4?d.xy.map(o=>{const r={};if(o&&typeof o=="object")for(const k in o){const v=o[k];if(+k>=0&&+k<n&&Array.isArray(v)&&v.length==2&&v.every(Number.isFinite))r[k]=[clamp(v[0],6,94),clamp(v[1],5,95)]}return r}):null;
+ if(xy)S.xy[n]=xy;
+ if(typeof d.o=="string")S.opp=d.o.slice(0,30);if(/^\d{4}-\d\d-\d\d$/.test(d.d||""))S.date=d.d;
+ save();return true;
 }
-loadShared();
+const shared=loadShared();
 addEventListener("hashchange",()=>{loadShared();render()});
 render();
-if(S.run&&S.rem>0){loop();tick()}else S.run=false;
+if(S.run&&S.rem>0){loop();tick()}else{S.run=false;if(!shared)openMatch(true)}
