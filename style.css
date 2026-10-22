@@ -78,9 +78,9 @@ tr.opp td{color:var(--mut)}
 .cd{background:var(--bg);color:var(--tx);min-height:38px;padding:0;font-size:15px;border-radius:6px}.cd.td{outline:2px solid var(--gr);outline-offset:-2px}.cd.on{background:var(--pu);color:#fff}
 .cd.has{position:relative;font-weight:700}.cd.has:after{content:"";position:absolute;left:50%;bottom:4px;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--gr)}.cd.on.has:after{background:#fff}
 .saved{display:flex;flex-direction:column;gap:4px}.saved>b{font-size:14px;color:var(--mut);font-weight:600}
-.sv{display:flex;align-items:center;gap:6px}.sv small{white-space:nowrap}.sv .x{min-height:40px}
-.svb{flex:1;min-width:0;background:var(--bg);color:var(--tx);border:1px solid var(--bd);text-align:left;font-size:14px;min-height:40px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.svb span{font-weight:700;font-variant-numeric:tabular-nums}.sv.on .svb{border:2px solid var(--pu)}
+.sv{display:flex;align-items:center;gap:6px}.sv small{white-space:nowrap}.sv .x{min-height:36px}.saved small.hint{white-space:normal}
+.svb{flex:1;min-width:0;background:var(--bg);color:var(--tx);border:1px solid var(--bd);text-align:left;font-size:14px;min-height:36px;padding:6px 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.svb span{font-weight:700;font-variant-numeric:tabular-nums}.svb span.gp{font-weight:400;font-size:12px;color:var(--mut)}.sv.on .svb{border:2px solid var(--pu)}
 .mb{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 /* Speeltijd: kleur tegenover de rest van de ploeg */
 .ptb{position:relative;display:block;height:8px;margin-top:4px;border-radius:4px;background:var(--bd);overflow:hidden}

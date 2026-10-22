@@ -151,10 +151,11 @@ function drawCal(){const y=calM.getFullYear(),m=calM.getMonth(),first=(new Date(
  let h=`<div class="ch"><button type="button" class="o" data-cm="-1" title="Vorige maand">‹</button><b>${calM.toLocaleDateString("nl-BE",{month:"long",year:"numeric"})}</b><button type="button" class="o" data-cm="1" title="Volgende maand">›</button></div><div class="cg">`+["ma","di","wo","do","vr","za","zo"].map(d=>`<span>${d}</span>`).join("")+"<span></span>".repeat(first);
  for(let d=1;d<=days;d++){const iso=y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");h+=`<button type="button" class="cd ${iso==calSel?"on":""} ${iso==today()?"td":""} ${S.matches[iso]?"has":""}" data-cd="${iso}">${d}</button>`}
  $("cal").innerHTML=h+"</div>";drawSaved()}
-// Lijst met bewaarde wedstrijden, nieuwste eerst
-function drawSaved(){const ds=Object.keys(S.matches).sort().reverse();
- $("saved").innerHTML=ds.length?"<b>Bewaarde wedstrijden</b>"+ds.map(d=>{const m=S.matches[d];
-  return `<div class="sv ${d==calSel?"on":""}"><button type="button" class="svb" data-cd="${d}"><span>${m.goals.length}–${m.og.length}</span> ${shortDate(d).replace(/ \d{4}$/,"")} · ${esc(m.opp||"Tegenstander")}</button>${d==S.date?'<small>open</small>':`<button type="button" class="x" data-rm="${d}" title="Wedstrijd verwijderen">✕</button>`}</div>`}).join(""):""}
+// Alleen de wedstrijden van de maand die de kalender toont, zodat de lijst kort blijft
+function drawSaved(){const ym=calM.getFullYear()+"-"+String(calM.getMonth()+1).padStart(2,"0"),all=Object.keys(S.matches),ds=all.filter(d=>d.startsWith(ym)).sort();
+ const mn=calM.toLocaleDateString("nl-BE",{month:"long"}),rest=all.length-ds.length;
+ $("saved").innerHTML=!all.length?"":`<b>Wedstrijden in ${mn}</b>`+(ds.length?"":`<small class="hint">Geen wedstrijden in ${mn}. Blader met ‹ › naar een andere maand.</small>`)+ds.map(d=>{const m=S.matches[d],played=m.goals.length+m.og.length>0||m.sec.some(x=>x>0);
+  return `<div class="sv ${d==calSel?"on":""}"><button type="button" class="svb" data-cd="${d}"><span class="${played?"":"gp"}">${played?m.goals.length+"–"+m.og.length:"gepland"}</span> ${shortDate(d).replace(/ \d{4}$/,"")} · ${esc(m.opp||"Tegenstander")}</button>${d==S.date?'<small>open</small>':`<button type="button" class="x" data-rm="${d}" title="Wedstrijd verwijderen">✕</button>`}</div>`}).join("")+(rest?`<small class="hint">${rest} ${rest==1?"andere wedstrijd":"andere wedstrijden"} in andere maanden · alles in 📊 Seizoen</small>`:"")}
 // Velden invullen met de bewaarde wedstrijd van die datum, of leeg voor een nieuwe datum
 function prefill(iso){const m=S.matches[iso];if(m){$("fopp").value=m.opp||"";$("f"+(m.fmt||8)).checked=true}else if(iso!=S.date)$("fopp").value=""}
 const showMonth=iso=>{const[y,m]=iso.split("-").map(Number);calM=new Date(y,m-1,1)};
