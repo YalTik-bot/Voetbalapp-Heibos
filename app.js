@@ -4,7 +4,7 @@ const POS11=[["Keeper",50,9],["Laatste man",50,27],["Linksachter",18,40],["Centr
 const KEY="khs_v1";
 const NP=14,N=NP+2; // 14 veldspelers + 2 keepers
 const empty=n=>[0,1,2,3].map(()=>Array(n).fill(null));
-let S={names:Array.from({length:N},(_,i)=>i<NP?"Speler "+(i+1):"Keeper "+(i-NP+1)),pl:empty(8),sec:Array(N).fill(0),fsec:[0,1,2,3].map(()=>Array(N).fill(0)),goals:[],og:[],subs:[],opp:"",date:"",fmt:8,lineups:{},xy:{},matches:{},logo:"",per:0,rem:1200,run:false,last:0};
+let S={names:Array.from({length:N},(_,i)=>i<NP?"Speler "+(i+1):"Keeper "+(i-NP+1)),pl:empty(8),sec:Array(N).fill(0),fsec:[0,1,2,3].map(()=>Array(N).fill(0)),goals:[],og:[],subs:[],sound:true,opp:"",date:"",fmt:8,lineups:{},xy:{},matches:{},logo:"",per:0,rem:1200,run:false,last:0};
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.names)S=Object.assign(S,s)}catch(e){}
 // Oude versie had 12 veldspelers: keepers (12, 13) schuiven op naar 14, 15 en er komen 2 veldspelers bij
 if(S.names.length==14){const m=i=>i==null?null:i<12?i+0:i+2,ins=a=>[...a.slice(0,12),0,0,...a.slice(12)];
@@ -44,6 +44,7 @@ function render(){
  $("score").textContent=score();$("oppn").textContent=oppName();$("mdate").textContent=shortDate(S.date)||"Kies een datum";
  document.querySelectorAll("[data-fmt]").forEach(b=>b.classList.toggle("on",+b.dataset.fmt==S.fmt));
  document.body.classList.toggle("moving",move);document.body.classList.toggle("f11",S.fmt==11);
+ $("snd").textContent=S.sound?"🔔 Signaal aan":"🔕 Signaal uit";$("snd").className=S.sound?"o":"o off";
  $("mv").textContent=move?"✓ Klaar met verschuiven":"✥ Posities verschuiven";$("mv").className=move?"g":"o";
  $("tabs").innerHTML=S.pl.map((f,fi)=>`<button class="tab ${fi==view?"on":""}" data-v="${fi}">Veld ${fi+1}${fi==S.per?" ●":""}<small>${fi*20}–${fi*20+20}'</small></button>`).join("");
  $("fields").innerHTML=S.pl.map((f,fi)=>`<div class="fw ${fi==view?"vis":""}"><div class="fh ${fi==S.per?"act":""}"><span>Veld ${fi+1} <small>${fi*20}–${fi*20+20} min</small></span>${move?`<button class="sw" data-rxy="${fi}">↺ Standaardposities</button>`:fi==S.per?'<span class="now">● Nu bezig</span>':`<button class="sw" data-f="${fi}">⇄ Naar dit veld</button>`}</div><div class="pitch ${fi==S.per?"act":""}">`+
@@ -120,6 +121,8 @@ function tick(){
  for(let k=0;k<n&&run;k++){
   S.last+=1000;S.rem--;
   S.pl[S.per].forEach(p=>{if(p!=null){S.sec[p]++;S.fsec[S.per][p]++}});
+  // Signaal alleen als het moment net gepasseerd is (niet achteraf na een vergrendeld scherm)
+  if(n-k<=3){if(S.rem==120)signal("warn");if(S.rem==0)signal("end")}
   if(S.rem<=0){stop();if(S.per<3){S.per++;S.rem=1200;view=S.per}else S.rem=0;render()}
  }
  if(n<1)return;
@@ -131,7 +134,22 @@ function tick(){
 async function lock(){try{if(run&&!wl&&navigator.wakeLock){wl=await navigator.wakeLock.request("screen");wl.onrelease=()=>{wl=null}}}catch(e){}}
 function loop(){run=setInterval(tick,250);lock()}
 function stop(){clearInterval(run);run=null;S.run=false;if(wl)wl.release();save()}
-$("go").onclick=()=>{if(!run&&view!=S.per&&!goTo(view))return;if(!run&&S.rem>0){S.last=Date.now();S.run=true;save();loop();render()}};
+// Signaal: piep (Web Audio), trilling (waar de GSM dat kan), knipperende klok en een melding
+let actx;
+function audio(){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();if(actx.state=="suspended")actx.resume()}catch(e){}}
+function beep(n,hz){if(!actx)return;for(let k=0;k<n;k++){const o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime+k*.45;
+ o.frequency.value=hz;o.connect(g);g.connect(actx.destination);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.5,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.35);o.start(t);o.stop(t+.4)}}
+let toastT;
+function toast(m){const el=$("toast");el.textContent=m;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,6000)}
+function signal(kind){
+ const end=kind=="end",f=S.per+1;
+ toast(end?"⏱ Einde van veld "+f+(f<4?" – volgende: veld "+(f+1):" – wedstrijd voorbij"):"⏱ Nog 2 minuten op veld "+f+" – zet je wissels klaar");
+ $("bar").classList.remove("sig-warn","sig-end");void $("bar").offsetWidth;$("bar").classList.add(end?"sig-end":"sig-warn");
+ if(!S.sound)return;
+ try{navigator.vibrate&&navigator.vibrate(end?[400,150,400,150,400]:[250])}catch(e){}
+ beep(end?3:1,end?880:660)}
+$("snd").onclick=()=>{S.sound=!S.sound;audio();if(S.sound)beep(1,660);save();render()};
+$("go").onclick=()=>{audio();if(!run&&view!=S.per&&!goTo(view))return;if(!run&&S.rem>0){S.last=Date.now();S.run=true;save();loop();render()}};
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState=="visible"&&run){tick();lock()}});
 $("pa").onclick=()=>{stop();render()};
 function resetMatch(){stop();S.per=view=0;S.rem=1200;S.sec=Array(N).fill(0);S.fsec=[0,1,2,3].map(()=>Array(N).fill(0));S.goals=[];S.og=[];S.subs=[]}
@@ -228,6 +246,8 @@ function loadShared(){
  if(typeof d.o=="string")S.opp=d.o.slice(0,30);if(/^\d{4}-\d\d-\d\d$/.test(d.d||""))S.date=d.d;
  save();return true;
 }
+// Werken zonder internet: de service worker bewaart een kopie van de app (alleen op de echte website)
+if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
 const shared=loadShared();
 addEventListener("hashchange",()=>{loadShared();render()});
 render();

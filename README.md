@@ -17,6 +17,8 @@ Eenvoudige webapp om een voetbalwedstrijd van 80 minuten (4 × 20 min) te planne
 - Speeltijd in één oogopslag: per speler een balk met de gespeelde minuten, rood (speelde het minst), oranje of groen (al veel)
 - Wissels tijdens een periode: een speler vervangen op het lopende veld wordt met de minuut in het wedstrijdverloop gezet
 - Seizoensoverzicht (📊): uitslagen, gewonnen/gelijk/verloren, doelsaldo, topschutters en per speler wedstrijden, minuten, doelpunten en posities
+- Signaal: 2 minuten voor het einde van een veld een piep en trilling, op het einde 3 piepen; aan/uit met 🔔
+- Werkt zonder internet nadat de app één keer geopend is (service worker `sw.js`)
 - Opstelling delen: knop 📤 maakt een link met namen en opstelling; wie de link opent kan ze overnemen
 - Donkere modus (knop 🌙/☀️ rechtsboven; volgt standaard de instelling van het toestel)
 - Handig op de GSM: klok blijft bovenaan staan, tabbladen per veld, tik een positie om een speler te kiezen, als app op het beginscherm te zetten
@@ -34,7 +36,7 @@ Open `index.html` in een browser, of publiceer via GitHub Pages.
 4. Na een minuut staat de app op `https://<jouw-gebruikersnaam>.github.io/<repo-naam>/`.
 
 ## Na een aanpassing
-Verhoog het versienummer achter `style.css?v=` en `app.js?v=` in `index.html`, zodat browsers de nieuwe bestanden ophalen in plaats van een oude bewaarde kopie.
+Verhoog het versienummer achter `style.css?v=` en `app.js?v=` in `index.html` en in `sw.js` (ook de naam van de cache daar), zodat browsers de nieuwe bestanden ophalen in plaats van een oude bewaarde kopie.
 
 ## Bestanden
 | Bestand | Inhoud |
@@ -43,4 +45,5 @@ Verhoog het versienummer achter `style.css?v=` en `app.js?v=` in `index.html`, z
 | `style.css` | opmaak (licht/donker, print) |
 | `app.js` | logica (opstelling, klok, doelpunten) |
 | `logo.jpg` | clublogo |
+| `sw.js` | kopie van de app voor gebruik zonder internet |
 | `manifest.json` | instellingen om de app op het beginscherm te zetten |

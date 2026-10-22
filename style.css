@@ -82,6 +82,12 @@ tr.opp td{color:var(--mut)}
 .svb{flex:1;min-width:0;background:var(--bg);color:var(--tx);border:1px solid var(--bd);text-align:left;font-size:14px;min-height:36px;padding:6px 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .svb span{font-weight:700;font-variant-numeric:tabular-nums}.svb span.gp{font-weight:400;font-size:12px;color:var(--mut)}.sv.on .svb{border:2px solid var(--pu)}
 .mb{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+/* Signaal einde periode */
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:max-content;max-width:min(92vw,440px);background:var(--tx);color:var(--bg);padding:12px 16px;border-radius:12px;font-size:15px;font-weight:600;z-index:30;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.sig-warn #clock{animation:pulse 1s 4;color:#d98c00}.sig-end #clock{animation:pulse .5s 10;color:var(--red)}
+@keyframes pulse{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.sig-warn #clock,.sig-end #clock{animation:none}}
+button.off{opacity:.7}
 /* Speeltijd: kleur tegenover de rest van de ploeg */
 .ptb{position:relative;display:block;height:8px;margin-top:4px;border-radius:4px;background:var(--bd);overflow:hidden}
 .ptb i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:currentColor}
