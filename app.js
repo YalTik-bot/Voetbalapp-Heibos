@@ -4,7 +4,7 @@ const POS11=[["Keeper",50,9],["Laatste man",50,27],["Linksachter",18,40],["Centr
 const KEY="khs_v1";
 const NP=14,N=NP+2; // 14 veldspelers + 2 keepers
 const empty=n=>[0,1,2,3].map(()=>Array(n).fill(null));
-let S={names:Array.from({length:N},(_,i)=>i<NP?"Speler "+(i+1):"Keeper "+(i-NP+1)),pl:empty(8),sec:Array(N).fill(0),fsec:[0,1,2,3].map(()=>Array(N).fill(0)),goals:[],og:[],opp:"",date:"",fmt:8,lineups:{},xy:{},logo:"",per:0,rem:1200,run:false,last:0};
+let S={names:Array.from({length:N},(_,i)=>i<NP?"Speler "+(i+1):"Keeper "+(i-NP+1)),pl:empty(8),sec:Array(N).fill(0),fsec:[0,1,2,3].map(()=>Array(N).fill(0)),goals:[],og:[],opp:"",date:"",fmt:8,lineups:{},xy:{},matches:{},logo:"",per:0,rem:1200,run:false,last:0};
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.names)S=Object.assign(S,s)}catch(e){}
 // Oude versie had 12 veldspelers: keepers (12, 13) schuiven op naar 14, 15 en er komen 2 veldspelers bij
 if(S.names.length==14){const m=i=>i==null?null:i<12?i+0:i+2,ins=a=>[...a.slice(0,12),0,0,...a.slice(12)];
@@ -15,7 +15,10 @@ if(!S.logo)S.logo=DEF_LOGO;
 let POS=S.fmt==11?POS11:POS8;
 let sel=null,run=null,wl=null,view=S.per,pick=null,move=false,drag=null;
 const $=id=>document.getElementById(id);
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+// Elke wedstrijd wordt bewaard onder haar datum; de spelersnamen gelden voor alle wedstrijden
+const MK=["opp","fmt","pl","lineups","xy","goals","og","sec","fsec","per","rem"];
+const snap=()=>JSON.parse(JSON.stringify(Object.fromEntries(MK.map(k=>[k,S[k]]))));
+const save=()=>{if(S.date)S.matches[S.date]=snap();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const isK=i=>i>=NP;
 function kit(i,z=34){const c=isK(i)?"#111":"#7b2fa8";
@@ -123,7 +126,7 @@ $("pr").onclick=()=>window.print();
 $("og").onclick=()=>{if(run)tick();S.og.push({f:S.per,m:minute(),t:Date.now()});save();renderGoals()};
 // Spelvorm 8 of 11: elke spelvorm bewaart zijn eigen opstelling
 function setFmt(n){if(n==S.fmt)return;S.lineups[S.fmt]=S.pl;S.fmt=n;S.pl=S.lineups[n]||empty(n);POS=n==11?POS11:POS8}
-// Wedstrijdgegevens: verschijnt bij het opstarten en via ✎
+// Wedstrijdgegevens: verschijnt bij het opstarten en via de datumknop
 // Datum typen (dd/mm/jjjj of ddmmjjjj) of aanklikken in een maandkalender
 const iso2be=s=>s?s.split("-").reverse().join("/"):"";
 const be2iso=s=>{const m=s.trim().match(/^(\d{1,2})[\/.\- ](\d{1,2})[\/.\- ](\d{4})$/)||s.trim().match(/^(\d{2})(\d{2})(\d{4})$/);if(!m)return"";
@@ -131,13 +134,21 @@ const be2iso=s=>{const m=s.trim().match(/^(\d{1,2})[\/.\- ](\d{1,2})[\/.\- ](\d{
 let calM,calSel="";
 function drawCal(){const y=calM.getFullYear(),m=calM.getMonth(),first=(new Date(y,m,1).getDay()+6)%7,days=new Date(y,m+1,0).getDate();
  let h=`<div class="ch"><button type="button" class="o" data-cm="-1" title="Vorige maand">‹</button><b>${calM.toLocaleDateString("nl-BE",{month:"long",year:"numeric"})}</b><button type="button" class="o" data-cm="1" title="Volgende maand">›</button></div><div class="cg">`+["ma","di","wo","do","vr","za","zo"].map(d=>`<span>${d}</span>`).join("")+"<span></span>".repeat(first);
- for(let d=1;d<=days;d++){const iso=y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");h+=`<button type="button" class="cd ${iso==calSel?"on":""} ${iso==today()?"td":""}" data-cd="${iso}">${d}</button>`}
- $("cal").innerHTML=h+"</div>"}
+ for(let d=1;d<=days;d++){const iso=y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");h+=`<button type="button" class="cd ${iso==calSel?"on":""} ${iso==today()?"td":""} ${S.matches[iso]?"has":""}" data-cd="${iso}">${d}</button>`}
+ $("cal").innerHTML=h+"</div>";drawSaved()}
+// Lijst met bewaarde wedstrijden, nieuwste eerst
+function drawSaved(){const ds=Object.keys(S.matches).sort().reverse();
+ $("saved").innerHTML=ds.length?"<b>Bewaarde wedstrijden</b>"+ds.map(d=>{const m=S.matches[d];
+  return `<div class="sv ${d==calSel?"on":""}"><button type="button" class="svb" data-cd="${d}"><span>${m.goals.length}–${m.og.length}</span> ${shortDate(d).replace(/ \d{4}$/,"")} · ${esc(m.opp||"Tegenstander")}</button>${d==S.date?'<small>open</small>':`<button type="button" class="x" data-rm="${d}" title="Wedstrijd verwijderen">✕</button>`}</div>`}).join(""):""}
+// Velden invullen met de bewaarde wedstrijd van die datum, of leeg voor een nieuwe datum
+function prefill(iso){const m=S.matches[iso];if(m){$("fopp").value=m.opp||"";$("f"+(m.fmt||8)).checked=true}else if(iso!=S.date)$("fopp").value=""}
 const showMonth=iso=>{const[y,m]=iso.split("-").map(Number);calM=new Date(y,m-1,1)};
 $("cal").onclick=e=>{const b=e.target.closest("button");if(!b)return;
  if(b.dataset.cm){calM=new Date(calM.getFullYear(),calM.getMonth()+ +b.dataset.cm,1)}
- else if(b.dataset.cd){calSel=b.dataset.cd;$("fdate").value=iso2be(calSel);$("fdate").classList.remove("bad")}drawCal()};
-$("fdate").oninput=()=>{const iso=be2iso($("fdate").value);$("fdate").classList.toggle("bad",!!$("fdate").value.trim()&&!iso);if(iso){calSel=iso;showMonth(iso);drawCal()}};
+ else if(b.dataset.cd){calSel=b.dataset.cd;showMonth(calSel);$("fdate").value=iso2be(calSel);$("fdate").classList.remove("bad");prefill(calSel)}
+ else if(b.dataset.rm){if(!confirm("Wedstrijd van "+shortDate(b.dataset.rm)+" verwijderen?"))return;delete S.matches[b.dataset.rm];try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}drawCal()};
+$("saved").onclick=$("cal").onclick;
+$("fdate").oninput=()=>{const iso=be2iso($("fdate").value);$("fdate").classList.toggle("bad",!!$("fdate").value.trim()&&!iso);if(iso){calSel=iso;showMonth(iso);prefill(iso);drawCal()}};
 function openMatch(first){
  calSel=S.date||today();$("fdate").value=iso2be(calSel);$("fdate").classList.remove("bad");showMonth(calSel);drawCal();$("fopp").value=S.opp;$("f"+S.fmt).checked=true;
  $("mtitle").textContent=first?"Welkom! Welke wedstrijd?":"Wedstrijd aanpassen";
@@ -145,9 +156,12 @@ function openMatch(first){
 }
 function applyMatch(){const v=$("fdate").value.trim(),iso=be2iso(v);
  if(v&&!iso){$("fdate").classList.add("bad");alert("Die datum klopt niet. Typ ze als dd/mm/jjjj, bv. 03/09/2026, of klik een dag aan in de kalender.");return false}
+ if(iso&&iso!=S.date){save();stop();
+  // Bewaarde wedstrijd openen, of een nieuwe beginnen met de huidige opstelling en alles op nul
+  if(S.matches[iso]){Object.assign(S,JSON.parse(JSON.stringify(S.matches[iso])));POS=S.fmt==11?POS11:POS8;view=S.per;sel=null}else resetMatch()}
  S.date=iso;S.opp=$("fopp").value.trim().slice(0,30);setFmt($("f11").checked?11:8);return true}
 $("fok").onclick=()=>{if(!applyMatch())return;$("mdlg").close();save();render()};
-$("fnew").onclick=()=>{if(!be2iso($("fdate").value)&&$("fdate").value.trim())return applyMatch();if(!confirm("Nieuwe wedstrijd starten? Klok, speelminuten en doelpunten gaan op nul. Namen en opstelling blijven."))return;applyMatch();resetMatch();$("mdlg").close();save();render()};
+$("fnew").onclick=()=>{if(!be2iso($("fdate").value)&&$("fdate").value.trim())return applyMatch();if(!confirm("Wedstrijd op deze datum opnieuw beginnen? Klok, speelminuten en doelpunten gaan op nul. Namen en opstelling blijven."))return;applyMatch();resetMatch();$("mdlg").close();save();render()};
 $("me").onclick=()=>openMatch(false);
 // Donkere modus: volgt het toestel tot je zelf kiest
 const dark=matchMedia("(prefers-color-scheme: dark)");

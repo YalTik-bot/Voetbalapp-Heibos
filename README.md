@@ -12,6 +12,7 @@ Eenvoudige webapp om een voetbalwedstrijd van 80 minuten (4 × 20 min) te planne
 - Printen van velden, spelers en doelpunten
 - Scorebord met doelpunten van de tegenstander (knop ⚽ Tegengoal) en de stand na elk doelpunt
 - Bij het opstarten: datum (typen als dd/mm/jjjj of aanklikken in de kalender), naam van de tegenstander en spelvorm (8 of 11 spelers) kiezen; later aan te passen met de datumknop 📅; spelvorm wisselen met de schakelaar 8 / 11 spelers
+- Wedstrijden per datum: opstelling, tegenstander, score, doelpunten en minuten worden bewaard onder de datum; dagen met een wedstrijd hebben een ● in de kalender en staan in een lijst om ze terug te openen
 - Posities verschuiven: knop ✥, sleep een positie naar een nieuwe plaats; per veld terug naar standaard
 - Opstelling delen: knop 📤 maakt een link met namen en opstelling; wie de link opent kan ze overnemen
 - Donkere modus (knop 🌙/☀️ rechtsboven; volgt standaard de instelling van het toestel)
