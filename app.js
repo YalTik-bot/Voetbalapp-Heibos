@@ -1,6 +1,6 @@
 const POS8=[["Keeper",50,9],["Laatste man",50,27],["Linksachter",20,43],["Rechtsachter",80,43],["Mid",50,59],["Linksvoor",20,76],["Rechtsvoor",80,76],["Spits",50,90]];
-// 11 spelers zoals op de schets: keeper, laatste man in de grote rechthoek, daarna 3 rijen van 3 met de spits in de cirkel
-const POS11=[["Keeper",50,7],["Laatste man",50,22],["Linksachter",18,40],["Centrale verdediger",50,40,"Centrale verd."],["Rechtsachter",82,40],["Linksmidden",18,60],["Mid",50,60],["Rechtsmidden",82,60],["Linksvoor",18,82],["Spits",50,86],["Rechtsvoor",82,82]];
+// 11 spelers zoals op de schets: keeper, laatste man, daarna 3 rijen van 3 met de spits in de cirkel
+const POS11=[["Keeper",50,9],["Laatste man",50,27],["Linksachter",18,40],["Centrale verdediger",50,40,"Centrale verd."],["Rechtsachter",82,40],["Linksmidden",18,60],["Mid",50,60],["Rechtsmidden",82,60],["Linksvoor",18,82],["Spits",50,86],["Rechtsvoor",82,82]];
 const KEY="khs_v1";
 const NP=14,N=NP+2; // 14 veldspelers + 2 keepers
 const empty=n=>[0,1,2,3].map(()=>Array(n).fill(null));
@@ -38,7 +38,7 @@ function render(){
  document.body.classList.toggle("moving",move);document.body.classList.toggle("f11",S.fmt==11);
  $("mv").textContent=move?"✓ Klaar met verschuiven":"✥ Posities verschuiven";$("mv").className=move?"g":"o";
  $("tabs").innerHTML=S.pl.map((f,fi)=>`<button class="tab ${fi==view?"on":""}" data-v="${fi}">Veld ${fi+1}${fi==S.per?" ●":""}<small>${fi*20}–${fi*20+20}'</small></button>`).join("");
- $("fields").innerHTML=S.pl.map((f,fi)=>`<div class="fw ${fi==view?"vis":""}"><div class="fh ${fi==S.per?"act":""}"><span>Veld ${fi+1} <small>${fi*20}–${fi*20+20} min</small></span>${move?`<button class="sw" data-rxy="${fi}">↺ Standaardposities</button>`:fi==S.per?'<span class="now">● Nu bezig</span>':`<button class="sw" data-f="${fi}">⇄ Naar dit veld</button>`}</div><div class="pitch ${fi==S.per?"act":""}"><i class="gb"></i>`+
+ $("fields").innerHTML=S.pl.map((f,fi)=>`<div class="fw ${fi==view?"vis":""}"><div class="fh ${fi==S.per?"act":""}"><span>Veld ${fi+1} <small>${fi*20}–${fi*20+20} min</small></span>${move?`<button class="sw" data-rxy="${fi}">↺ Standaardposities</button>`:fi==S.per?'<span class="now">● Nu bezig</span>':`<button class="sw" data-f="${fi}">⇄ Naar dit veld</button>`}</div><div class="pitch ${fi==S.per?"act":""}">`+
   POS.map((p,si)=>{const pi=f[si],[x,y]=at(fi,si);return `<div class="slot" style="left:${x}%;top:${y}%" data-f="${fi}" data-s="${si}">`+
   (pi==null?'<div class="empty"></div>':`<span class="tok">${kit(pi)}<button class="g1 noprint" data-goal="${fi},${pi}">⚽</button></span><span class="lbl">${esc(S.names[pi])}</span><span class="lbl fm" data-fm="${fi},${pi}">⏱ ${fmt(S.fsec[fi][pi])}</span>`)+
   `<span class="lbl" style="opacity:.85">${pi==null?p[3]||p[0]:""}</span></div>`}).join("")+`</div></div>`).join("");
