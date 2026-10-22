@@ -14,7 +14,7 @@ button.g{background:var(--gr)}button.o{background:#6f6880}
 button,.slot,.b .t,.fh{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 #clock{font-size:40px;font-weight:700;font-variant-numeric:tabular-nums}
 .bar{display:flex;gap:8px 14px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5;box-shadow:0 4px 10px rgba(0,0,0,.08)}
-.ck{display:flex;flex-direction:column}.btns{display:flex;gap:8px;flex-wrap:wrap}
+.ck{display:flex;flex-direction:column;min-width:0}#per{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.btns{display:flex;gap:8px;flex-wrap:wrap}
 #tabs{display:none}
 .tab{background:var(--card);color:var(--tx);border:2px solid var(--bd);box-shadow:0 3px 0 var(--bd);padding:6px 2px;display:flex;flex-direction:column;align-items:center;font-weight:600;font-size:14px}
 .tab:active{transform:translateY(2px);box-shadow:0 1px 0 var(--bd)}
@@ -51,6 +51,58 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
 #plist{outline:0;display:flex;flex-direction:column;gap:6px;padding:10px 12px;overflow:auto}
 .pi{display:flex;align-items:center;gap:10px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);text-align:left;padding:6px 10px}
 .pi span{flex:1}.pi small{font-size:12px}.pi.cur{border:2px solid var(--pu)}.pi.o{background:#6f6880;color:#fff;justify-content:center}
+#match{padding:8px 10px}
+.sb{display:flex;align-items:center;justify-content:center;gap:12px;font-weight:700}
+.sb .tm{flex:1;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sb .tm:first-child{text-align:right}
+#score{font-size:30px;font-variant-numeric:tabular-nums;background:var(--bg);border-radius:8px;padding:2px 12px;white-space:nowrap}
+.mi{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px;color:var(--mut);font-size:13px;flex-wrap:wrap}
+.mi button{min-height:40px;padding:6px 12px;font-size:14px}
+.chip{background:var(--bg);color:var(--tx);border:1px solid var(--bd);font-weight:600}.chip .wz{color:var(--put);font-weight:600}
+.seg{display:inline-flex;border:2px solid var(--pu);border-radius:10px;overflow:hidden}
+.seg button{background:var(--card);color:var(--put);border-radius:0;min-height:36px;font-weight:600}.seg button.on{background:var(--pu);color:#fff}
+tr.opp td{color:var(--mut)}
+.tools{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}.tools button{min-height:36px;padding:6px 12px;font-size:14px}
+.mvh{display:none}.moving .mvh{display:inline}
+.moving .slot{touch-action:none;cursor:grab;outline:2px dashed rgba(255,255,255,.8);border-radius:10px;background:rgba(0,0,0,.12)}
+.moving .slot.drag{cursor:grabbing;background:rgba(0,0,0,.3);z-index:3}.moving .g1{display:none}
+.f11 .slot{width:24%}
+.mf{display:flex;flex-direction:column;gap:12px;padding:16px}
+.mf label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--mut)}
+.mf input[type=text]{font-size:16px;padding:9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);min-height:44px}
+.mf fieldset{border:1px solid var(--bd);border-radius:8px;display:flex;gap:16px;padding:8px 12px}.mf legend{font-size:14px;color:var(--mut)}
+.mf .rd{flex-direction:row;align-items:center;gap:6px;color:var(--tx);font-size:16px}.rd input{width:20px;height:20px}
+#mdlg{overflow:auto}.mf input.bad{border-color:var(--red);outline:2px solid var(--red)}
+.cal{border:1px solid var(--bd);border-radius:10px;padding:8px}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}.ch b{text-transform:capitalize}.ch button{min-height:36px;width:44px;padding:0;font-size:20px}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}.cg span{font-size:12px;color:var(--mut);padding:2px 0}
+.cd{background:var(--bg);color:var(--tx);min-height:38px;padding:0;font-size:15px;border-radius:6px}.cd.td{outline:2px solid var(--gr);outline-offset:-2px}.cd.on{background:var(--pu);color:#fff}
+.cd.has{position:relative;font-weight:700}.cd.has:after{content:"";position:absolute;left:50%;bottom:4px;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--gr)}.cd.on.has:after{background:#fff}
+.saved{display:flex;flex-direction:column;gap:4px}.saved>b{font-size:14px;color:var(--mut);font-weight:600}
+.sv{display:flex;align-items:center;gap:6px}.sv small{white-space:nowrap}.sv .x{min-height:36px}.saved small.hint{white-space:normal}
+.svb{flex:1;min-width:0;background:var(--bg);color:var(--tx);border:1px solid var(--bd);text-align:left;font-size:14px;min-height:36px;padding:6px 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.svb span{font-weight:700;font-variant-numeric:tabular-nums}.svb span.gp{font-weight:400;font-size:12px;color:var(--mut)}.sv.on .svb{border:2px solid var(--pu)}
+.mb{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+/* Signaal einde periode */
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:max-content;max-width:min(92vw,440px);background:var(--tx);color:var(--bg);padding:12px 16px;border-radius:12px;font-size:15px;font-weight:600;z-index:30;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.sig-warn #clock{animation:pulse 1s 4;color:#d98c00}.sig-end #clock{animation:pulse .5s 10;color:var(--red)}
+@keyframes pulse{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.sig-warn #clock,.sig-end #clock{animation:none}}
+/* Speeltijd: kleur tegenover de rest van de ploeg */
+.ptb{position:relative;display:block;height:8px;margin-top:4px;border-radius:4px;background:var(--bd);overflow:hidden}
+.ptb i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:currentColor}
+.ptb.low,.pm.low{color:var(--red)}.ptb.mid,.pm.mid{color:#d98c00}.ptb.high,.pm.high{color:var(--gr)}
+.pi span small.pm{display:block;font-size:12px}
+.lg{display:inline-block;padding:0 5px;border-radius:4px;color:#fff;font-size:11px}.lg.low{background:var(--red)}.lg.mid{background:#d98c00}.lg.high{background:var(--gr)}
+tr.sub td{font-size:13px}
+/* Seizoensoverzicht */
+dialog.wide{width:min(720px,96vw)}#sbody{padding:12px;overflow:auto}#sbody h3{font-size:15px;margin:16px 0 6px}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px}.sum div{background:var(--bg);border-radius:10px;padding:8px;text-align:center}
+.sum b{display:block;font-size:22px;font-variant-numeric:tabular-nums}.sum b.w{color:var(--gr)}.sum b.v{color:var(--red)}
+.rl,.ts{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}.rl li,.ts li{display:flex;align-items:center;gap:8px;font-size:14px}.rl li span:nth-child(2){flex:1;min-width:0}
+.ts{list-style:decimal;padding-left:20px}.ts li{display:list-item}
+.res{display:inline-block;min-width:26px;text-align:center;border-radius:6px;padding:2px 4px;font-weight:700;font-size:12px;color:#fff;background:#6f6880}.res.w{background:var(--gr)}.res.v{background:var(--red)}.res.pl{background:var(--bd);color:var(--tx);font-weight:400}
+.tw{overflow-x:auto}.st td,.st th{white-space:nowrap;font-variant-numeric:tabular-nums;vertical-align:top}.st td:first-child{white-space:normal}.st .sp{display:block;font-size:11px;white-space:normal}
+.mb2{display:inline-block;width:48px;height:6px;border-radius:3px;background:var(--bd);margin-right:6px;vertical-align:middle;overflow:hidden}.mb2 i{display:block;height:100%;background:var(--pu)}
 @media (max-width:699px){
  body{padding:8px}header{margin-bottom:8px}#logo{width:48px;height:48px}h1{font-size:16px}
  .bar{padding:8px;margin:0 -2px 10px}#clock{font-size:clamp(26px,9vw,34px);line-height:1}.tx{display:none}
@@ -59,9 +111,11 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
  #tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
  .fw:not(.vis){display:none}
  .slot{font-size:12px}.empty{width:36px;height:36px}
+ .f11 .slot{font-size:10px}.f11 .empty{width:30px;height:30px}.f11 .tok svg{width:28px;height:28px}
+ #score{font-size:26px}.sb .tm{font-size:14px}
  #bench{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}
 }
 @media print{:root,:root[data-theme],:root:not([data-theme]){--bg:#fff;--card:#fff;--tx:#000;--mut:#555;--bd:#ccc;--put:#6a2c91}body{background:#fff;color:#000;padding:0}#th,.sw,.now{display:none}
 /* 4 velden samen op de eerste pagina (A4), bank en doelpunten op de volgende */
-@page{margin:10mm}#fields{grid-template-columns:repeat(2,80mm)!important;justify-content:center;gap:4mm 8mm}.fw,.card{break-inside:avoid}.fh{min-height:0;margin-bottom:2px}.fw{display:block!important}.slot{font-size:10px}.b.on{background:none;border-color:var(--bd)}.noprint{display:none!important}.card{border:0}#fields{grid-template-columns:1fr 1fr}.pitch.act{outline:0}
+@page{margin:10mm}#fields{grid-template-columns:repeat(2,80mm)!important;justify-content:center;gap:4mm 8mm}.fw,.card{break-inside:avoid}.fh{min-height:0;margin-bottom:2px}.fw{display:block!important}.slot{font-size:10px}.b.on{background:none;border-color:var(--bd)}.noprint{display:none!important}.card{border:0}#match{padding:0 0 4mm}.chip{border:0;background:none;padding:0}#fields{grid-template-columns:1fr 1fr}.pitch.act{outline:0}
 .pitch,.tok svg{-webkit-print-color-adjust:exact;print-color-adjust:exact}.b input{border:0}}

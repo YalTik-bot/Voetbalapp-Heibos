@@ -1,0 +1,8 @@
+:{$PORT:8080} {
+	root * /srv
+	encode gzip
+	# Pagina en service worker niet lang bewaren, zodat een nieuwe versie meteen doorkomt
+	@fresh path / /index.html /sw.js
+	header @fresh Cache-Control "no-cache"
+	file_server
+}
