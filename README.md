@@ -35,6 +35,14 @@ Open `index.html` in een browser, of publiceer via GitHub Pages.
 3. Kies bij *Source* **Deploy from a branch**, branch `main`, map `/ (root)`, en klik **Save**.
 4. Na een minuut staat de app op `https://<jouw-gebruikersnaam>.github.io/<repo-naam>/`.
 
+## Publiceren op Railway
+De repository bevat een `Dockerfile` en `Caddyfile`: Railway bouwt daarmee een kleine webserver (Caddy) die de app toont.
+1. In Railway: **New Project → Deploy from GitHub repo** en kies deze repository (branch `main`).
+2. Railway herkent de `Dockerfile` en bouwt automatisch; elke merge naar `main` zet een nieuwe versie online.
+3. Ga naar de service → **Settings → Networking → Generate Domain** en pas de naam aan, bv. `heibos.up.railway.app`.
+
+Nieuwe bestanden voor de app moeten ook in de `COPY`-regel van de `Dockerfile` komen.
+
 ## Na een aanpassing
 Verhoog het versienummer achter `style.css?v=` en `app.js?v=` in `index.html` en in `sw.js` (ook de naam van de cache daar), zodat browsers de nieuwe bestanden ophalen in plaats van een oude bewaarde kopie.
 
@@ -45,5 +53,6 @@ Verhoog het versienummer achter `style.css?v=` en `app.js?v=` in `index.html` en
 | `style.css` | opmaak (licht/donker, print) |
 | `app.js` | logica (opstelling, klok, doelpunten) |
 | `logo.jpg` | clublogo |
+| `Dockerfile`, `Caddyfile` | webserver voor Railway |
 | `sw.js` | kopie van de app voor gebruik zonder internet |
 | `manifest.json` | instellingen om de app op het beginscherm te zetten |
