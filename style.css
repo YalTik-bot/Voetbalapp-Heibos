@@ -87,7 +87,6 @@ tr.opp td{color:var(--mut)}
 .sig-warn #clock{animation:pulse 1s 4;color:#d98c00}.sig-end #clock{animation:pulse .5s 10;color:var(--red)}
 @keyframes pulse{50%{opacity:.25}}
 @media (prefers-reduced-motion:reduce){.sig-warn #clock,.sig-end #clock{animation:none}}
-button.off{opacity:.7}
 /* Speeltijd: kleur tegenover de rest van de ploeg */
 .ptb{position:relative;display:block;height:8px;margin-top:4px;border-radius:4px;background:var(--bd);overflow:hidden}
 .ptb i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:currentColor}
