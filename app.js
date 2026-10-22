@@ -1,5 +1,6 @@
 const POS8=[["Keeper",50,9],["Laatste man",50,27],["Linksachter",20,43],["Rechtsachter",80,43],["Mid",50,59],["Linksvoor",20,76],["Rechtsvoor",80,76],["Spits",50,90]];
-const POS11=[["Keeper",50,8],["Linksachter",13,28],["Centrale verdediger links",37,24,"CV links"],["Centrale verdediger rechts",63,24,"CV rechts"],["Rechtsachter",87,28],["Linksmidden",18,52],["Centrale mid",50,48],["Rechtsmidden",82,52],["Linksbuiten",16,77],["Spits",50,88],["Rechtsbuiten",84,77]];
+// 11 spelers zoals op de schets: keeper, laatste man in de grote rechthoek, daarna 3 rijen van 3 met de spits in de cirkel
+const POS11=[["Keeper",50,7],["Laatste man",50,22],["Linksachter",18,40],["Centrale verdediger",50,40,"Centrale verd."],["Rechtsachter",82,40],["Linksmidden",18,60],["Mid",50,60],["Rechtsmidden",82,60],["Linksvoor",18,82],["Spits",50,86],["Rechtsvoor",82,82]];
 const KEY="khs_v1";
 const NP=14,N=NP+2; // 14 veldspelers + 2 keepers
 const empty=n=>[0,1,2,3].map(()=>Array(n).fill(null));
@@ -37,7 +38,7 @@ function render(){
  document.body.classList.toggle("moving",move);document.body.classList.toggle("f11",S.fmt==11);
  $("mv").textContent=move?"✓ Klaar met verschuiven":"✥ Posities verschuiven";$("mv").className=move?"g":"o";
  $("tabs").innerHTML=S.pl.map((f,fi)=>`<button class="tab ${fi==view?"on":""}" data-v="${fi}">Veld ${fi+1}${fi==S.per?" ●":""}<small>${fi*20}–${fi*20+20}'</small></button>`).join("");
- $("fields").innerHTML=S.pl.map((f,fi)=>`<div class="fw ${fi==view?"vis":""}"><div class="fh ${fi==S.per?"act":""}"><span>Veld ${fi+1} <small>${fi*20}–${fi*20+20} min</small></span>${move?`<button class="sw" data-rxy="${fi}">↺ Standaardposities</button>`:fi==S.per?'<span class="now">● Nu bezig</span>':`<button class="sw" data-f="${fi}">⇄ Naar dit veld</button>`}</div><div class="pitch ${fi==S.per?"act":""}">`+
+ $("fields").innerHTML=S.pl.map((f,fi)=>`<div class="fw ${fi==view?"vis":""}"><div class="fh ${fi==S.per?"act":""}"><span>Veld ${fi+1} <small>${fi*20}–${fi*20+20} min</small></span>${move?`<button class="sw" data-rxy="${fi}">↺ Standaardposities</button>`:fi==S.per?'<span class="now">● Nu bezig</span>':`<button class="sw" data-f="${fi}">⇄ Naar dit veld</button>`}</div><div class="pitch ${fi==S.per?"act":""}"><i class="gb"></i>`+
   POS.map((p,si)=>{const pi=f[si],[x,y]=at(fi,si);return `<div class="slot" style="left:${x}%;top:${y}%" data-f="${fi}" data-s="${si}">`+
   (pi==null?'<div class="empty"></div>':`<span class="tok">${kit(pi)}<button class="g1 noprint" data-goal="${fi},${pi}">⚽</button></span><span class="lbl">${esc(S.names[pi])}</span><span class="lbl fm" data-fm="${fi},${pi}">⏱ ${fmt(S.fsec[fi][pi])}</span>`)+
   `<span class="lbl" style="opacity:.85">${pi==null?p[3]||p[0]:""}</span></div>`}).join("")+`</div></div>`).join("");
@@ -122,14 +123,30 @@ $("og").onclick=()=>{if(run)tick();S.og.push({f:S.per,m:minute(),t:Date.now()});
 // Spelvorm 8 of 11: elke spelvorm bewaart zijn eigen opstelling
 function setFmt(n){if(n==S.fmt)return;S.lineups[S.fmt]=S.pl;S.fmt=n;S.pl=S.lineups[n]||empty(n);POS=n==11?POS11:POS8}
 // Wedstrijdgegevens: verschijnt bij het opstarten en via ✎
+// Datum typen (dd/mm/jjjj of ddmmjjjj) of aanklikken in een maandkalender
+const iso2be=s=>s?s.split("-").reverse().join("/"):"";
+const be2iso=s=>{const m=s.trim().match(/^(\d{1,2})[\/.\- ](\d{1,2})[\/.\- ](\d{4})$/)||s.trim().match(/^(\d{2})(\d{2})(\d{4})$/);if(!m)return"";
+ const d=new Date(+m[3],m[2]-1,+m[1]);return d.getMonth()==m[2]-1&&d.getDate()==+m[1]?m[3]+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0"):""};
+let calM,calSel="";
+function drawCal(){const y=calM.getFullYear(),m=calM.getMonth(),first=(new Date(y,m,1).getDay()+6)%7,days=new Date(y,m+1,0).getDate();
+ let h=`<div class="ch"><button type="button" class="o" data-cm="-1" title="Vorige maand">‹</button><b>${calM.toLocaleDateString("nl-BE",{month:"long",year:"numeric"})}</b><button type="button" class="o" data-cm="1" title="Volgende maand">›</button></div><div class="cg">`+["ma","di","wo","do","vr","za","zo"].map(d=>`<span>${d}</span>`).join("")+"<span></span>".repeat(first);
+ for(let d=1;d<=days;d++){const iso=y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");h+=`<button type="button" class="cd ${iso==calSel?"on":""} ${iso==today()?"td":""}" data-cd="${iso}">${d}</button>`}
+ $("cal").innerHTML=h+"</div>"}
+const showMonth=iso=>{const[y,m]=iso.split("-").map(Number);calM=new Date(y,m-1,1)};
+$("cal").onclick=e=>{const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.cm){calM=new Date(calM.getFullYear(),calM.getMonth()+ +b.dataset.cm,1)}
+ else if(b.dataset.cd){calSel=b.dataset.cd;$("fdate").value=iso2be(calSel);$("fdate").classList.remove("bad")}drawCal()};
+$("fdate").oninput=()=>{const iso=be2iso($("fdate").value);$("fdate").classList.toggle("bad",!!$("fdate").value.trim()&&!iso);if(iso){calSel=iso;showMonth(iso);drawCal()}};
 function openMatch(first){
- $("fdate").value=S.date||today();$("fopp").value=S.opp;$("f"+S.fmt).checked=true;
+ calSel=S.date||today();$("fdate").value=iso2be(calSel);$("fdate").classList.remove("bad");showMonth(calSel);drawCal();$("fopp").value=S.opp;$("f"+S.fmt).checked=true;
  $("mtitle").textContent=first?"Welkom! Welke wedstrijd?":"Wedstrijd aanpassen";
  $("mdlg").showModal();
 }
-function applyMatch(){S.date=$("fdate").value;S.opp=$("fopp").value.trim().slice(0,30);setFmt($("f11").checked?11:8)}
-$("fok").onclick=()=>{applyMatch();$("mdlg").close();save();render()};
-$("fnew").onclick=()=>{if(!confirm("Nieuwe wedstrijd starten? Klok, speelminuten en doelpunten gaan op nul. Namen en opstelling blijven."))return;applyMatch();resetMatch();$("mdlg").close();save();render()};
+function applyMatch(){const v=$("fdate").value.trim(),iso=be2iso(v);
+ if(v&&!iso){$("fdate").classList.add("bad");alert("Die datum klopt niet. Typ ze als dd/mm/jjjj, bv. 03/09/2026, of klik een dag aan in de kalender.");return false}
+ S.date=iso;S.opp=$("fopp").value.trim().slice(0,30);setFmt($("f11").checked?11:8);return true}
+$("fok").onclick=()=>{if(!applyMatch())return;$("mdlg").close();save();render()};
+$("fnew").onclick=()=>{if(!be2iso($("fdate").value)&&$("fdate").value.trim())return applyMatch();if(!confirm("Nieuwe wedstrijd starten? Klok, speelminuten en doelpunten gaan op nul. Namen en opstelling blijven."))return;applyMatch();resetMatch();$("mdlg").close();save();render()};
 $("me").onclick=()=>openMatch(false);
 // Donkere modus: volgt het toestel tot je zelf kiest
 const dark=matchMedia("(prefers-color-scheme: dark)");

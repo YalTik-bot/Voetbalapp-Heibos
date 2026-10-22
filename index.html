@@ -38,7 +38,8 @@
 
 <dialog id="mdlg" class="noprint"><form method="dialog" class="mf" onsubmit="return false">
  <b id="mtitle">Wedstrijd</b>
- <label>Datum<input type="date" id="fdate"></label>
+ <label>Datum<input type="text" id="fdate" inputmode="numeric" maxlength="10" placeholder="dd/mm/jjjj" autocomplete="off"></label>
+ <div id="cal" class="cal"></div>
  <label>Tegenstander<input type="text" id="fopp" maxlength="30" placeholder="Naam van de tegenpartij"></label>
  <fieldset><legend>Spelvorm</legend><label class="rd"><input type="radio" name="ff" id="f8"> 8 spelers</label><label class="rd"><input type="radio" name="ff" id="f11"> 11 spelers</label></fieldset>
  <div class="mb"><button type="button" class="o" id="fnew">Nieuwe wedstrijd starten</button><button type="button" class="g" id="fok">Verder</button></div>
