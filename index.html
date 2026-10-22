@@ -9,10 +9,10 @@
 <meta name="apple-mobile-web-app-title" content="Heibos">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>K. Heibos S.V. Kalmthout – Opstelling</title>
-<link rel="stylesheet" href="style.css?v=11"></head><body>
+<link rel="stylesheet" href="style.css?v=12"></head><body>
 <header><label id="logo" title="Klik om je logo te kiezen"><span id="lt">K. Heibos S.V.<br>Kalmthout</span><input id="lf" type="file" accept="image/*" hidden></label>
 <div><h1>K. Heibos S.V. Kalmthout</h1><small>Opstelling &amp; wedstrijdklok</small></div>
-<button id="sh" class="noprint hb" title="Opstelling delen">📤<span class="tx"> Delen</span></button><button id="th" class="noprint hb" title="Donkere / lichte modus">🌙</button></header>
+<button id="st" class="noprint hb" title="Seizoensoverzicht">📊<span class="tx"> Seizoen</span></button><button id="sh" class="noprint hb" title="Opstelling delen">📤<span class="tx"> Delen</span></button><button id="th" class="noprint hb" title="Donkere / lichte modus">🌙</button></header>
 
 <div class="card noprint bar" id="bar">
  <div class="ck"><div id="clock">20:00</div><span id="per" class="hint"></span></div>
@@ -35,10 +35,13 @@
 <div class="tools noprint"><button id="mv" class="o">✥ Posities verschuiven</button><span class="hint mvh">Sleep een positie naar een nieuwe plaats.</span></div>
 <div id="fields"></div>
 
-<div class="card" style="margin-top:12px"><b>Reservebank</b> <small>(namen aanpasbaar, worden bewaard · ⏱ = totaal van alle velden)</small><div id="bench" style="margin-top:8px"></div></div>
-<div class="card"><b>Doelpunten</b><table id="goals"></table></div>
+<div id="fair" class="fair noprint"></div>
+<div class="card" style="margin-top:12px"><div class="bh"><span><b>Reservebank</b> <small>(namen aanpasbaar · ⏱ = gespeeld · verwacht = na alle velden)</small></span><label class="noprint">Minimum <input type="number" id="minmin" min="0" max="80" step="5" inputmode="numeric"> min</label></div><div id="bench" style="margin-top:8px"></div></div>
+<div class="card"><b>Wedstrijdverloop</b> <small>(doelpunten en wissels)</small><table id="goals"></table></div>
 
 <dialog id="pick" class="noprint"><div class="ph"><b id="pt"></b><button class="o" data-close="1">✕</button></div><div id="plist" tabindex="-1" autofocus></div></dialog>
+
+<dialog id="sdlg" class="noprint wide"><div class="ph"><b>📊 Seizoensoverzicht</b><button class="o" data-sclose="1">✕</button></div><div id="sbody"></div></dialog>
 
 <dialog id="mdlg" class="noprint"><form method="dialog" class="mf" onsubmit="return false">
  <b id="mtitle">Wedstrijd</b>
@@ -51,4 +54,4 @@
  <small>Elke wedstrijd wordt bewaard onder haar datum (● in de kalender). Een nieuwe datum begint met je huidige opstelling. „Opnieuw beginnen” zet klok, minuten en doelpunten van deze datum op nul.</small>
 </form></dialog>
 
-<script src="app.js?v=11"></script></body></html>
+<script src="app.js?v=12"></script></body></html>
