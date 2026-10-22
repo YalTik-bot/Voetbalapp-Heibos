@@ -1,7 +1,7 @@
 // Bewaart een kopie van de app zodat ze ook zonder internet opent.
 // Met internet wordt altijd eerst de nieuwste versie opgehaald (en de kopie bijgewerkt).
-const CACHE="heibos-v16";
-const FILES=["./","index.html","style.css?v=16","app.js?v=16","logo.jpg","manifest.json"];
+const CACHE="heibos-v17";
+const FILES=["./","index.html","style.css?v=17","app.js?v=17","logo.jpg","manifest.json"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!=CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener("fetch",e=>{
