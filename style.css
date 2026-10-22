@@ -82,16 +82,12 @@ tr.opp td{color:var(--mut)}
 .svb{flex:1;min-width:0;background:var(--bg);color:var(--tx);border:1px solid var(--bd);text-align:left;font-size:14px;min-height:40px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .svb span{font-weight:700;font-variant-numeric:tabular-nums}.sv.on .svb{border:2px solid var(--pu)}
 .mb{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
-/* Eerlijke speeltijd */
-.fair{margin:10px 0 0;padding:8px 10px;border-radius:10px;font-size:14px;line-height:1.6}.fair.good{background:rgba(46,139,62,.14)}.fair.bad{background:rgba(204,120,0,.14)}
-.fair span{display:inline-block;padding:0 6px;border-radius:6px;margin:1px 0;font-weight:600}.fair .low{background:var(--red);color:#fff}.fair .warn{background:#d98c00;color:#fff}
-.bh{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.bh label{font-size:13px;color:var(--mut);display:flex;align-items:center;gap:6px}
-.bh input{width:64px;font-size:16px;padding:4px 6px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--tx)}
-.ptb{position:relative;display:block;height:8px;margin-top:4px;border-radius:4px;background:var(--bd);overflow:visible}
-.ptb u,.ptb i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}.ptb u{background:currentColor;opacity:.35}.ptb i{background:currentColor}
-.ptb em{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--tx)}
-.ptb.ok{color:var(--gr)}.ptb.warn{color:#d98c00}.ptb.low{color:var(--red)}
-.pi span small.pm{display:block;font-size:12px}.pm.ok{color:var(--gr)}.pm.warn{color:#d98c00}.pm.low{color:var(--red)}
+/* Speeltijd: kleur tegenover de rest van de ploeg */
+.ptb{position:relative;display:block;height:8px;margin-top:4px;border-radius:4px;background:var(--bd);overflow:hidden}
+.ptb i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:currentColor}
+.ptb.low,.pm.low{color:var(--red)}.ptb.mid,.pm.mid{color:#d98c00}.ptb.high,.pm.high{color:var(--gr)}
+.pi span small.pm{display:block;font-size:12px}
+.lg{display:inline-block;padding:0 5px;border-radius:4px;color:#fff;font-size:11px}.lg.low{background:var(--red)}.lg.mid{background:#d98c00}.lg.high{background:var(--gr)}
 tr.sub td{font-size:13px}
 /* Seizoensoverzicht */
 dialog.wide{width:min(720px,96vw)}#sbody{padding:12px;overflow:auto}#sbody h3{font-size:15px;margin:16px 0 6px}

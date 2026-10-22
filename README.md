@@ -14,7 +14,7 @@ Eenvoudige webapp om een voetbalwedstrijd van 80 minuten (4 × 20 min) te planne
 - Bij het opstarten: datum (typen als dd/mm/jjjj of aanklikken in de kalender), naam van de tegenstander en spelvorm (8 of 11 spelers) kiezen; later aan te passen met de datumknop 📅; spelvorm wisselen met de schakelaar 8 / 11 spelers
 - Wedstrijden per datum: opstelling, tegenstander, score, doelpunten en minuten worden bewaard onder de datum; dagen met een wedstrijd hebben een ● in de kalender en staan in een lijst om ze terug te openen
 - Posities verschuiven: knop ✥, sleep een positie naar een nieuwe plaats; per veld terug naar standaard
-- Eerlijke speeltijd: per speler een balk met gespeelde en verwachte minuten tegenover een zelf gekozen minimum, met waarschuwing voor wie eronder blijft
+- Speeltijd in één oogopslag: per speler een balk met de gespeelde minuten, rood (speelde het minst), oranje of groen (al veel)
 - Wissels tijdens een periode: een speler vervangen op het lopende veld wordt met de minuut in het wedstrijdverloop gezet
 - Seizoensoverzicht (📊): uitslagen, gewonnen/gelijk/verloren, doelsaldo, topschutters en per speler wedstrijden, minuten, doelpunten en posities
 - Opstelling delen: knop 📤 maakt een link met namen en opstelling; wie de link opent kan ze overnemen

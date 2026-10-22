@@ -4,7 +4,7 @@ const POS11=[["Keeper",50,9],["Laatste man",50,27],["Linksachter",18,40],["Centr
 const KEY="khs_v1";
 const NP=14,N=NP+2; // 14 veldspelers + 2 keepers
 const empty=n=>[0,1,2,3].map(()=>Array(n).fill(null));
-let S={names:Array.from({length:N},(_,i)=>i<NP?"Speler "+(i+1):"Keeper "+(i-NP+1)),pl:empty(8),sec:Array(N).fill(0),fsec:[0,1,2,3].map(()=>Array(N).fill(0)),goals:[],og:[],subs:[],minMin:40,opp:"",date:"",fmt:8,lineups:{},xy:{},matches:{},logo:"",per:0,rem:1200,run:false,last:0};
+let S={names:Array.from({length:N},(_,i)=>i<NP?"Speler "+(i+1):"Keeper "+(i-NP+1)),pl:empty(8),sec:Array(N).fill(0),fsec:[0,1,2,3].map(()=>Array(N).fill(0)),goals:[],og:[],subs:[],opp:"",date:"",fmt:8,lineups:{},xy:{},matches:{},logo:"",per:0,rem:1200,run:false,last:0};
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.names)S=Object.assign(S,s)}catch(e){}
 // Oude versie had 12 veldspelers: keepers (12, 13) schuiven op naar 14, 15 en er komen 2 veldspelers bij
 if(S.names.length==14){const m=i=>i==null?null:i<12?i+0:i+2,ins=a=>[...a.slice(0,12),0,0,...a.slice(12)];
@@ -29,17 +29,11 @@ const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4)
 const shortDate=s=>{if(!s)return"";const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d).toLocaleDateString("nl-BE",{weekday:"short",day:"numeric",month:"short",year:"numeric"})};
 const oppName=()=>S.opp||"Tegenstander";
 const score=()=>S.goals.length+" – "+S.og.length;
-// Verwachte speeltijd: gespeeld op voorbije velden + rest van het lopende veld + geplande velden
-function expSec(p){let t=0;for(let f=0;f<4;f++){const on=S.pl[f].includes(p);
- t+=f<S.per?S.fsec[f][p]:f==S.per?S.fsec[f][p]+(on?S.rem:0):on?1200:0}return t}
-const fair=p=>{const e=expSec(p)/60,m=S.minMin;return e>=m?"ok":e>=m*.75?"warn":"low"};
-function paintFair(){
- document.querySelectorAll("[data-bar]").forEach(el=>{const p=+el.dataset.bar,pl=S.sec[p]/48,ex=expSec(p)/48;
-  el.className="ptb "+fair(p);el.querySelector("i").style.width=Math.min(100,pl)+"%";el.querySelector("u").style.width=Math.min(100,ex)+"%"});
- document.querySelectorAll("[data-exp]").forEach(el=>el.textContent=Math.round(expSec(+el.dataset.exp)/60)+"'");
- const low=S.names.map((n,i)=>i).filter(i=>fair(i)!="ok");
- $("fair").innerHTML=low.length?`⚠ Onder ${S.minMin} min: `+low.map(i=>`<span class="${fair(i)}">${esc(S.names[i])} ${Math.round(expSec(i)/60)}'</span>`).join(" "):`✓ Iedereen speelt minstens ${S.minMin} min`;
- $("fair").className="fair "+(low.length?"bad":"good")}
+// Speeltijd vergeleken met de rest van de ploeg: rood = speelde het minst, oranje = midden, groen = al veel
+const lvl=p=>{const max=Math.max(...S.sec);if(!max)return"none";const r=S.sec[p]/max;return r<1/3?"low":r<2/3?"mid":"high"};
+// Balklengte tegenover de speler met de meeste minuten
+function paintBars(){const max=Math.max(1,...S.sec);document.querySelectorAll("[data-bar]").forEach(el=>{const p=+el.dataset.bar;
+ el.className="ptb "+lvl(p);el.querySelector("i").style.width=S.sec[p]/max*100+"%"})}
 // Verschoven posities per spelvorm en per veld; anders de standaardplaats
 const xyOf=f=>((S.xy[S.fmt]=S.xy[S.fmt]||[{},{},{},{}])[f]);
 const at=(f,s)=>xyOf(f)[s]||[POS[s][1],POS[s][2]];
@@ -56,8 +50,8 @@ function render(){
   POS.map((p,si)=>{const pi=f[si],[x,y]=at(fi,si);return `<div class="slot" style="left:${x}%;top:${y}%" data-f="${fi}" data-s="${si}">`+
   (pi==null?'<div class="empty"></div>':`<span class="tok">${kit(pi)}<button class="g1 noprint" data-goal="${fi},${pi}">⚽</button></span><span class="lbl">${esc(S.names[pi])}</span><span class="lbl fm" data-fm="${fi},${pi}">⏱ ${fmt(S.fsec[fi][pi])}</span>`)+
   `<span class="lbl" style="opacity:.85">${pi==null?p[3]||p[0]:""}</span></div>`}).join("")+`</div></div>`).join("");
- $("bench").innerHTML=S.names.map((n,i)=>`<div class="b ${sel===i?"sel":""} ${S.pl[view].includes(i)?"on":""}"><div class="t" data-b="${i}">${kit(i)}<br><small>${isK(i)?"Keeper":"Speler"}</small></div><input value="${esc(n)}" data-n="${i}" maxlength="20"><small>⏱ <span data-min="${i}">${fmt(S.sec[i])}</span> · verwacht <b data-exp="${i}"></b></small><span class="ptb" data-bar="${i}" title="Gespeeld (vol) en verwacht (licht) op 80 min; streepje = minimum"><u></u><i></i><em style="left:${S.minMin/.8}%"></em></span></div>`).join("");
- $("minmin").value=S.minMin;paintFair();renderGoals();
+ $("bench").innerHTML=S.names.map((n,i)=>`<div class="b ${sel===i?"sel":""} ${S.pl[view].includes(i)?"on":""}"><div class="t" data-b="${i}">${kit(i)}<br><small>${isK(i)?"Keeper":"Speler"}</small></div><input value="${esc(n)}" data-n="${i}" maxlength="20"><small>⏱ <span data-min="${i}">${fmt(S.sec[i])}</span></small><span class="ptb" data-bar="${i}" title="Gespeelde minuten (volle balk = speler met de meeste minuten)"><i></i></span></div>`).join("");
+ paintBars();renderGoals();
 }
 // Doelpunten van beide ploegen samen, met de stand na elk doelpunt
 function renderGoals(){
@@ -110,11 +104,11 @@ function openPick(f,s){
  pick=[f,s];const row=S.pl[f],cur=row[s];
  const ids=S.names.map((n,i)=>i);
  // Bij een wissel eerst de spelers die nog niet op het veld staan, met de minste speeltijd bovenaan
- if(live(f))ids.sort((a,b)=>row.includes(a)-row.includes(b)||expSec(a)-expSec(b));
+ if(live(f))ids.sort((a,b)=>row.includes(a)-row.includes(b)||S.sec[a]-S.sec[b]);
  if(s==0)ids.sort((a,b)=>isK(b)-isK(a));
  $("pt").textContent=(live(f)?"🔁 Wissel op "+minute()+"' · ":"")+"Veld "+(f+1)+" · "+POS[s][0];
  $("plist").innerHTML=(cur!=null?`<button class="pi o" data-pick="-1">✕ Positie leegmaken</button>`:"")+ids.map(i=>{const o=row.indexOf(i);
-  return `<button class="pi ${i===cur?"cur":""}" data-pick="${i}">${kit(i,26)}<span>${esc(S.names[i])}<small class="pm ${fair(i)}">⏱ ${Math.round(S.sec[i]/60)}' · verwacht ${Math.round(expSec(i)/60)}'</small></span><small>${o>-1?POS[o][0]:""}</small></button>`}).join("");
+  return `<button class="pi ${i===cur?"cur":""}" data-pick="${i}">${kit(i,26)}<span>${esc(S.names[i])}<small class="pm ${lvl(i)}">⏱ ${Math.round(S.sec[i]/60)}' gespeeld</small></span><small>${o>-1?POS[o][0]:""}</small></button>`}).join("");
  $("pick").showModal();
 }
 document.addEventListener("change",e=>{if(e.target.dataset.n!=null){S.names[+e.target.dataset.n]=e.target.value||"Speler";save();render()}});
@@ -132,7 +126,7 @@ function tick(){
  $("clock").textContent=fmt(S.rem);
  document.querySelectorAll("[data-min]").forEach(el=>el.textContent=fmt(S.sec[+el.dataset.min]));
  document.querySelectorAll("[data-fm]").forEach(el=>{const[f,p]=el.dataset.fm.split(",");el.textContent="⏱ "+fmt(S.fsec[f][p])});
- paintFair();save();
+ paintBars();save();
 }
 async function lock(){try{if(run&&!wl&&navigator.wakeLock){wl=await navigator.wakeLock.request("screen");wl.onrelease=()=>{wl=null}}}catch(e){}}
 function loop(){run=setInterval(tick,250);lock()}
@@ -143,7 +137,6 @@ $("pa").onclick=()=>{stop();render()};
 function resetMatch(){stop();S.per=view=0;S.rem=1200;S.sec=Array(N).fill(0);S.fsec=[0,1,2,3].map(()=>Array(N).fill(0));S.goals=[];S.og=[];S.subs=[]}
 $("rs").onclick=()=>{if(confirm("Tijd, spelersminuten en doelpunten (ook van de tegenstander) resetten? (opstelling en namen blijven)")){resetMatch();save();render()}};
 $("pr").onclick=()=>window.print();
-$("minmin").onchange=e=>{S.minMin=Math.max(0,Math.min(80,Math.round(+e.target.value)||0));save();render()};
 // Doelpunt van de tegenstander, op de minuut van de lopende klok
 $("og").onclick=()=>{if(run)tick();S.og.push({f:S.per,m:minute(),t:Date.now()});save();renderGoals()};
 // Spelvorm 8 of 11: elke spelvorm bewaart zijn eigen opstelling
