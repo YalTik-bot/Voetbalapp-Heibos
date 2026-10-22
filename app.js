@@ -23,7 +23,7 @@ return `<svg width="${z}" height="${z}" viewBox="0 0 34 34"><path d="M10 3l-8 6 
 const fmt=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
 function minute(){return S.per*20+Math.min(20,Math.floor((1200-S.rem)/60)+1)}
 const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
-const longDate=s=>{if(!s)return"";const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d).toLocaleDateString("nl-BE",{weekday:"long",day:"numeric",month:"long",year:"numeric"})};
+const shortDate=s=>{if(!s)return"";const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d).toLocaleDateString("nl-BE",{weekday:"short",day:"numeric",month:"short",year:"numeric"})};
 const oppName=()=>S.opp||"Tegenstander";
 const score=()=>S.goals.length+" – "+S.og.length;
 // Verschoven posities per spelvorm en per veld; anders de standaardplaats
@@ -33,8 +33,8 @@ function render(){
  if(S.logo){$("logo").innerHTML='<img src="'+S.logo+'" alt="logo"><input id="lf" type="file" accept="image/*" hidden>';$("lf").onchange=up}
  $("clock").textContent=fmt(S.rem);
  $("per").textContent="Veld "+(S.per+1)+" · "+S.per*20+"–"+(S.per+1)*20+" min · "+score().replace(" – ","–");
- $("score").textContent=score();$("oppn").textContent=oppName();$("mdate").textContent=longDate(S.date)||"Geen datum gekozen";
- $("mfmt").textContent=S.fmt+" spelers";
+ $("score").textContent=score();$("oppn").textContent=oppName();$("mdate").textContent=shortDate(S.date)||"Kies een datum";
+ document.querySelectorAll("[data-fmt]").forEach(b=>b.classList.toggle("on",+b.dataset.fmt==S.fmt));
  document.body.classList.toggle("moving",move);document.body.classList.toggle("f11",S.fmt==11);
  $("mv").textContent=move?"✓ Klaar met verschuiven":"✥ Posities verschuiven";$("mv").className=move?"g":"o";
  $("tabs").innerHTML=S.pl.map((f,fi)=>`<button class="tab ${fi==view?"on":""}" data-v="${fi}">Veld ${fi+1}${fi==S.per?" ●":""}<small>${fi*20}–${fi*20+20}'</small></button>`).join("");
@@ -58,6 +58,7 @@ document.addEventListener("click",e=>{
  if(t.dataset.goal&&!move){const[f,p]=t.dataset.goal.split(",").map(Number);S.goals.push({p,m:f==S.per?minute():f*20+20,t:Date.now()});save();renderGoals();return}
  if(t.dataset.del){S.goals.splice(+t.dataset.del,1);save();renderGoals();return}
  if(t.dataset.dog){S.og.splice(+t.dataset.dog,1);save();renderGoals();return}
+ const fb=t.closest("[data-fmt]");if(fb){setFmt(+fb.dataset.fmt);sel=null;save();render();return}
  const rx=t.closest("[data-rxy]");if(rx){const f=+rx.dataset.rxy;xyOf(f);S.xy[S.fmt][f]={};save();render();return}
  const b=t.closest("[data-b]");if(b){sel=sel===+b.dataset.b?null:+b.dataset.b;render();return}
  const sl=t.closest(".slot");if(sl){if(move)return;const f=+sl.dataset.f,s=+sl.dataset.s;
