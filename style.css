@@ -48,6 +48,7 @@ table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:4px;bord
 dialog{border:0;border-radius:14px;padding:0;width:min(420px,94vw);max-height:85vh;background:var(--card);color:var(--tx)}
 dialog::backdrop{background:rgba(0,0,0,.5)}
 .ph{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:var(--card)}
+.pg{font-size:13px;color:var(--mut);margin-top:6px}.pmode{display:flex;margin-bottom:2px}.pmode button{flex:1}.pi:disabled{opacity:.6}
 #plist{outline:0;display:flex;flex-direction:column;gap:6px;padding:10px 12px;overflow:auto}
 .pi{display:flex;align-items:center;gap:10px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);text-align:left;padding:6px 10px}
 .pi span{flex:1}.pi small{font-size:12px}.pi.cur{border:2px solid var(--pu)}.pi.o{background:#6f6880;color:#fff;justify-content:center}
