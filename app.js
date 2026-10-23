@@ -102,7 +102,10 @@ document.addEventListener("click",e=>{
   else{openPick(f,s);return}save();render();return}
  const v=t.closest("[data-v]");if(v){view=+v.dataset.v;render();return}
  const act=t.closest("[data-act]");if(act&&pick){const[f,s]=pick,a=act.dataset.act;
-  if(a=="move"){openPick(f,s,true);return}$("pick").close();openSwapIn(f,s,a,false);return}
+  if(a=="move"){openPick(f,s,true);return}
+  if(a=="clear"){const before=S.pl[f].slice(),nSubs=S.subs.length,out=S.pl[f][s];place(f,s,-1,"sub");$("pick").close();save();render();
+   toast("✕ "+S.names[out]+" van het veld gehaald",()=>{S.pl[f]=before;S.subs.length=nSubs;render()});return}
+  $("pick").close();openSwapIn(f,s,a,false);return}
  const so=t.closest("[data-swout]");if(so){openSwapIn(S.per,+so.dataset.swout,"sub",true);return}
  const si=t.closest("[data-swin]");if(si&&swap){doSwap(+si.dataset.swin);return}
  if(t.closest("[data-swback]")&&swap){if(swap.back)openSwapOut();else{$("gdlg").close();openPick(swap.f,swap.s)}return}
@@ -127,6 +130,8 @@ function goTo(f){if(run)tick();
  S.per=view=f;S.rem=1200;if(run)S.last=Date.now();return true}
 // Een veld is "live" als zijn periode gestart en nog niet voorbij is: dan is een wijziging een wissel
 const live=f=>f==S.per&&S.rem<1200&&S.rem>0;
+// Een veld is gestart als zijn periode bezig is of al voorbij
+const started=f=>f<S.per||f==S.per&&S.rem<1200;
 // Speler i op positie s van veld f zetten (i<0 = leegmaken).
 // Staat i al op dit veld, dan wisselen de twee van plaats. Op een lopend veld is het een wissel
 // (in het verloop), of met mode "fix" een verbetering: de minuten van dit veld gaan naar de juiste speler.
@@ -142,12 +147,14 @@ function openPick(f,s,listOnly){
  if(undoFn)hideToast();
  pick=[f,s];const row=S.pl[f],cur=row[s],L=live(f);
  $("pt").textContent="Veld "+(f+1)+" · "+POS[s][0]+(cur!=null?" · "+S.names[cur]:"");
- // Tijdens de wedstrijd eerst een keuzemenu met grote knoppen
- if(L&&cur!=null&&!listOnly){const n=esc(S.names[cur]);
-  $("pact").hidden=false;$("pact").innerHTML=`<button class="pi gbtn" data-goalp="${cur}">⚽ Doelpunt voor ${n}</button>
+ // Op een speler tikken geeft altijd een keuzemenu; een lege plaats toont meteen de lijst om op te stellen
+ if(cur!=null&&!listOnly){const n=esc(S.names[cur]);
+  $("pact").hidden=false;$("pact").innerHTML=(started(f)?`<button class="pi gbtn" data-goalp="${cur}">⚽ Doelpunt voor ${n}</button>`:"")+(L?`
    <button class="pi act" data-act="sub">🔁 Wisselen<small>${n} gaat eruit, jij kiest wie erin komt</small></button>
-   <button class="pi act" data-act="fix">✏️ Verkeerde speler ingegeven<small>Kies wie er eigenlijk stond (geen wissel)</small></button>
-   <button class="pi act" data-act="move">⇄ Van plaats wisselen<small>met een speler op dit veld</small></button>`;
+   <button class="pi act" data-act="fix">✏️ Verkeerde speler ingegeven<small>Kies wie er eigenlijk stond (geen wissel)</small></button>`:`
+   <button class="pi act" data-act="sub">🔁 Vervangen door andere speler<small>Kies wie op ${esc(POS[s][0])} komt</small></button>`)+`
+   <button class="pi act" data-act="move">⇄ Van plaats wisselen<small>met een speler op dit veld</small></button>
+   <button class="pi act" data-act="clear">✕ Van het veld halen<small>${esc(POS[s][0])} wordt leeg</small></button>`;
   $("plist").hidden=true;$("plist").innerHTML="";
  }else{
   const ids=S.names.map((n,i)=>i);
@@ -156,7 +163,7 @@ function openPick(f,s,listOnly){
   if(s==0)ids.sort((a,b)=>isK(b)-isK(a));
   const item=i=>{const o=row.indexOf(i);return `<button class="pi ${i===cur?"cur":""}" data-pick="${i}" ${i===cur?"disabled":""}>${kit(i,26)}<span>${esc(S.names[i])}<small class="pm ${L?lvl(i):selLvl(i)}">${L?`⏱ ${Math.round(S.sec[i]/60)}' gespeeld`:`${dots(i)} op ${nf(i)} van 4 velden`}</small></span><small>${i===cur?"staat hier":o>-1?"⇄ "+(POS[o][3]||POS[o][0]):""}</small></button>`};
   const bank=ids.filter(i=>!row.includes(i)),veld=ids.filter(i=>row.includes(i));
-  $("pact").hidden=!(cur!=null&&!L);$("pact").innerHTML=cur!=null&&!L?`<button class="pi gbtn" data-goalp="${cur}">⚽ Doelpunt voor ${esc(S.names[cur])}</button>`:"";
+  $("pact").hidden=true;$("pact").innerHTML="";
   $("plist").hidden=false;
   $("plist").innerHTML=listOnly?`<b class="pg">Wissel van plaats met</b>`+veld.filter(i=>i!==cur).map(item).join(""):
    `<b class="pg">Op de bank</b>`+bank.map(item).join("")+(veld.length?`<b class="pg">Op dit veld <small>(wisselen van plaats)</small></b>`+veld.map(item).join(""):"")+
@@ -172,17 +179,17 @@ function openSwapOut(){if(undoFn)hideToast();const f=S.per,row=S.pl[f],L=live(f)
  $("glist").innerHTML=on.length?`<div class="gg">${on.map(([p,s])=>`<button class="gs" data-swout="${s}">${kit(p,24)}<span>${esc(S.names[p])}<small>${esc(POS[s][3]||POS[s][0])}</small></span></button>`).join("")}</div>`:`<p class="hint">Nog niemand opgesteld op veld ${f+1}.</p>`;
  if(!$("gdlg").open)$("gdlg").showModal()}
 function openSwapIn(f,s,mode,back){swap={f,s,mode,back};const row=S.pl[f],out=row[s],n=esc(S.names[out]);
- const ids=S.names.map((x,i)=>i).filter(i=>!row.includes(i)).sort((a,b)=>S.sec[a]-S.sec[b]);if(s==0)ids.sort((a,b)=>isK(b)-isK(a));
- $("gt").textContent=mode=="fix"?"✏️ Wie stond er eigenlijk i.p.v. "+S.names[out]+"?":"🔁 Wie komt erin voor "+S.names[out]+"?";
+ const L=live(f),ids=S.names.map((x,i)=>i).filter(i=>!row.includes(i)).sort(L?(a,b)=>S.sec[a]-S.sec[b]:(a,b)=>nf(a)-nf(b));if(s==0)ids.sort((a,b)=>isK(b)-isK(a));
+ $("gt").textContent=mode=="fix"?"✏️ Wie stond er eigenlijk i.p.v. "+S.names[out]+"?":L?"🔁 Wie komt erin voor "+S.names[out]+"?":"🔁 Wie komt op "+POS[s][0]+" i.p.v. "+S.names[out]+"?";
  $("glist").innerHTML=(mode=="fix"?`<p class="hint">De minuten van ${n} op dit veld gaan naar de speler die je kiest. Er komt geen wissel in het verloop.</p>`:"")+
-  (ids.length?`<div class="gg">${ids.map(i=>`<button class="gs" data-swin="${i}">${kit(i,24)}<span>${esc(S.names[i])}<small class="pm ${lvl(i)}">⏱ ${Math.round(S.sec[i]/60)}' gespeeld</small></span></button>`).join("")}</div>`:`<p class="hint">Niemand meer op de bank.</p>`)+
+  (ids.length?`<div class="gg">${ids.map(i=>`<button class="gs" data-swin="${i}">${kit(i,24)}<span>${esc(S.names[i])}<small class="pm ${L?lvl(i):selLvl(i)}">${L?`⏱ ${Math.round(S.sec[i]/60)}' gespeeld`:`${dots(i)} op ${nf(i)} van 4`}</small></span></button>`).join("")}</div>`:`<p class="hint">Niemand meer op de bank.</p>`)+
   `<div class="gx"><button class="o" data-swback="1">‹ Terug</button></div>`;
  if(!$("gdlg").open)$("gdlg").showModal();$("glist").scrollTop=0}
 function doSwap(i){const{f,s,mode}=swap,row=S.pl[f],out=row[s],L=live(f);if(L&&run)tick();
  // Gegevens om de wissel binnen enkele seconden ongedaan te maken
  const before=row.slice(),nSubs=S.subs.length,w=S.subs.filter(x=>x.f==f&&x.in===out).pop(),wIn=w&&w.in,i0=S.fsec[f][i];
  place(f,s,i,mode);$("gdlg").close();save();render();
- toast(mode=="fix"?"✏️ "+S.names[out]+" vervangen door "+S.names[i]:"🔁 "+S.names[i]+" erin voor "+S.names[out]+(L?" ("+minute()+"')":""),()=>{
+ toast(mode=="fix"||!L?"✏️ "+S.names[out]+" vervangen door "+S.names[i]:"🔁 "+S.names[i]+" erin voor "+S.names[out]+" ("+minute()+"')",()=>{
   if(run)tick();const d=S.fsec[f][i]-i0;if(L&&d>0){S.fsec[f][i]-=d;S.sec[i]-=d;S.fsec[f][out]+=d;S.sec[out]+=d}
   S.pl[f]=before;S.subs.length=nSubs;if(w)w.in=wIn;render()})}
 document.addEventListener("change",e=>{if(e.target.dataset.n!=null){S.names[+e.target.dataset.n]=e.target.value||"Speler";save();render()}});
