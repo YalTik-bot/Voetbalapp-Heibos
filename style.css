@@ -11,6 +11,11 @@ h1{font-size:18px;margin:0}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px;margin-bottom:12px}
 button{background:var(--pu);color:#fff;border:0;border-radius:8px;padding:9px 14px;font-size:15px;cursor:pointer;min-height:42px}
 button.g{background:var(--gr)}button.o{background:#6f6880}
+button:active:not(:disabled){transform:scale(.94)}button:disabled{opacity:.35;cursor:default}
+.bar.running{box-shadow:0 0 0 3px var(--gr),0 4px 10px rgba(0,0,0,.08)}.bar.running #clock,.bar.running #per{color:var(--gr)}
+.bar.paused{box-shadow:0 0 0 3px #d98c00,0 4px 10px rgba(0,0,0,.08)}.bar.paused #per{color:#d98c00}
+.bar.flash{animation:flash .35s}@keyframes flash{0%{transform:scale(1.02)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.bar.flash{animation:none}}
 button,.slot,.b .t,.fh{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 #clock{font-size:40px;font-weight:700;font-variant-numeric:tabular-nums}
 .bar{display:flex;gap:8px 14px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5;box-shadow:0 4px 10px rgba(0,0,0,.08)}

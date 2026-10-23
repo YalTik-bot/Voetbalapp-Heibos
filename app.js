@@ -50,10 +50,15 @@ function paintBars(){const max=Math.max(1,...S.sec);document.querySelectorAll("[
 // Verschoven posities per spelvorm en per veld; anders de standaardplaats
 const xyOf=f=>((S.xy[S.fmt]=S.xy[S.fmt]||[{},{},{},{}])[f]);
 const at=(f,s)=>xyOf(f)[s]||[POS[s][1],POS[s][2]];
+// Statusregel onder de klok en kleur van de klokbalk: loopt / gepauzeerd
+function perLine(){const st=run?"● Loopt":S.rem<1200&&S.rem>0?"⏸ Gepauzeerd":"";
+ $("per").textContent=(st?st+" · ":"")+"Veld "+(S.per+1)+" · "+S.per*20+"–"+(S.per+1)*20+" min · "+score().replace(" – ","–");
+ $("bar").classList.toggle("running",!!run);$("bar").classList.toggle("paused",!run&&S.rem<1200&&S.rem>0);
+ $("go").disabled=!!run||S.rem<=0&&S.per>=3;$("pa").disabled=!run}
 function render(){
  if(S.logo){$("logo").innerHTML='<img src="'+S.logo+'" alt="logo"><input id="lf" type="file" accept="image/*" hidden>';$("lf").onchange=up}
  $("clock").textContent=fmt(S.rem);
- $("per").textContent="Veld "+(S.per+1)+" · "+S.per*20+"–"+(S.per+1)*20+" min · "+score().replace(" – ","–");
+ perLine();
  $("score").textContent=score();$("oppn").textContent=oppName();$("mdate").textContent=shortDate(S.date)||"Kies een datum";
  document.querySelectorAll("[data-fmt]").forEach(b=>b.classList.toggle("on",+b.dataset.fmt==S.fmt));
  document.body.classList.toggle("moving",move);document.body.classList.toggle("f11",S.fmt==11);
@@ -74,7 +79,7 @@ function renderGoals(){
   if(g.k=="s")return `<tr class="sub"><td>${g.m}'</td><td>🔁 ${g.in!=null?`<b>${nm(g.in)}</b> erin`:""}${g.in!=null&&g.out!=null?" voor "+nm(g.out):g.out!=null?nm(g.out)+" eruit":""} <small>(${esc(g.pos)}, veld ${g.f+1})</small></td><td></td><td class="noprint"><button class="x" data-dsub="${g.i}" title="Uit het verloop halen">✕</button></td></tr>`;
   g.k=="g"?h++:a++;
   return `<tr class="${g.k=="g"?"":"opp"}"><td>${g.m}'</td><td>⚽ ${g.k=="g"?nm(g.p):esc(oppName())}</td><td>${h}–${a}</td><td class="noprint"><button class="x" data-${g.k=="g"?"del":"dog"}="${g.i}">✕</button></td></tr>`}).join(""):"<tr><td class='hint'>Nog geen doelpunten of wissels.</td></tr>";
- $("score").textContent=score();$("per").textContent="Veld "+(S.per+1)+" · "+S.per*20+"–"+(S.per+1)*20+" min · "+score().replace(" – ","–");
+ $("score").textContent=score();perLine();
 }
 document.addEventListener("click",e=>{
  const t=e.target;
@@ -179,16 +184,22 @@ function beep(n,hz){if(!actx)return;for(let k=0;k<n;k++){const o=actx.createOsci
 let toastT;
 let undoFn=null;
 const hideToast=()=>{clearTimeout(toastT);$("toast").hidden=true;undoFn=null};
-function toast(m,undo){const el=$("toast");undoFn=undo||null;el.innerHTML="<span>"+esc(m)+"</span>"+(undo?'<button class="undo" data-undo="1">Ongedaan maken</button>':"");el.hidden=false;clearTimeout(toastT);toastT=setTimeout(hideToast,undo?4000:6000)}
+function toast(m,undo,ms){const el=$("toast");undoFn=undo||null;el.innerHTML="<span>"+esc(m)+"</span>"+(undo?'<button class="undo" data-undo="1">Ongedaan maken</button>':"");el.hidden=false;clearTimeout(toastT);toastT=setTimeout(hideToast,ms||(undo?4000:6000))}
 function signal(kind){
  const end=kind=="end",f=S.per+1;
  toast(end?"⏱ Einde van veld "+f+(f<4?" – volgende: veld "+(f+1):" – wedstrijd voorbij"):"⏱ Nog 2 minuten op veld "+f+" – zet je wissels klaar");
  $("bar").classList.remove("sig-warn","sig-end");void $("bar").offsetWidth;$("bar").classList.add(end?"sig-end":"sig-warn");
  try{navigator.vibrate&&navigator.vibrate(end?[400,150,400,150,400]:[250])}catch(e){}
  beep(end?3:1,end?880:660)}
-$("go").onclick=()=>{audio();if(!run&&view!=S.per&&!goTo(view))return;if(!run&&S.rem>0){S.last=Date.now();S.run=true;save();loop();render()}};
+// Voelbare en hoorbare bevestiging bij start en pauze (trillen kan niet op iPhone, het tikje wel)
+function press(start){try{navigator.vibrate&&navigator.vibrate(start?60:[40,60,40])}catch(e){}
+ if(actx){const o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime;o.frequency.value=start?1320:660;o.connect(g);g.connect(actx.destination);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.25,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+.09);o.start(t);o.stop(t+.1)}
+ $("bar").classList.remove("flash");void $("bar").offsetWidth;$("bar").classList.add("flash")}
+$("go").onclick=()=>{audio();if(!run&&view!=S.per&&!goTo(view))return;if(!run&&S.rem>0){S.last=Date.now();S.run=true;save();loop();render();
+ press(true);toast("▶ Klok gestart · veld "+(S.per+1),null,1600)}};
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState=="visible"&&run){tick();lock()}});
-$("pa").onclick=()=>{stop();render()};
+$("pa").onclick=()=>{if(!run)return;stop();render();press(false);toast("⏸ Gepauzeerd op "+fmt(S.rem),null,1600)};
 function resetMatch(){stop();S.per=view=0;S.rem=1200;S.sec=Array(N).fill(0);S.fsec=[0,1,2,3].map(()=>Array(N).fill(0));S.goals=[];S.og=[];S.subs=[]}
 $("rs").onclick=()=>{if(confirm("Tijd, spelersminuten en doelpunten (ook van de tegenstander) resetten? (opstelling en namen blijven)")){resetMatch();save();render()}};
 $("pr").onclick=()=>window.print();
