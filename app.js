@@ -18,7 +18,7 @@ if(!S.flip){flipXY(S.xy);for(const d in S.matches)flipXY(S.matches[d].xy||{});S.
 const DEF_LOGO="logo.jpg";
 if(!S.logo)S.logo=DEF_LOGO;
 let POS=S.fmt==11?POS11:POS8;
-let pmode="sub",sel=null,run=null,wl=null,view=S.per,pick=null,move=false,drag=null;
+let sel=null,run=null,wl=null,view=S.per,pick=null,move=false,drag=null;
 const $=id=>document.getElementById(id);
 // Elke wedstrijd wordt bewaard onder haar datum; de spelersnamen gelden voor alle wedstrijden
 const MK=["opp","fmt","pl","lineups","xy","goals","og","subs","sec","fsec","per","rem"];
@@ -101,8 +101,12 @@ document.addEventListener("click",e=>{
   if(sel!=null){place(f,s,sel,"sub");sel=null}
   else{openPick(f,s);return}save();render();return}
  const v=t.closest("[data-v]");if(v){view=+v.dataset.v;render();return}
- const pm=t.closest("[data-pmode]");if(pm&&pick){pmode=pm.dataset.pmode;openPick(pick[0],pick[1],true);return}
- const pk=t.closest("[data-pick]");if(pk&&pick){const[f,s]=pick;place(f,s,+pk.dataset.pick,pmode);
+ const act=t.closest("[data-act]");if(act&&pick){const[f,s]=pick,a=act.dataset.act;
+  if(a=="move"){openPick(f,s,true);return}$("pick").close();openSwapIn(f,s,a,false);return}
+ const so=t.closest("[data-swout]");if(so){openSwapIn(S.per,+so.dataset.swout,"sub",true);return}
+ const si=t.closest("[data-swin]");if(si&&swap){doSwap(+si.dataset.swin);return}
+ if(t.closest("[data-swback]")&&swap){if(swap.back)openSwapOut();else{$("gdlg").close();openPick(swap.f,swap.s)}return}
+ const pk=t.closest("[data-pick]");if(pk&&pick){const[f,s]=pick;place(f,s,+pk.dataset.pick,"sub");
   $("pick").close();save();render();return}
  if(t.dataset.close||t.id=="pick"){$("pick").close();return}
  if(t.dataset.sclose||t.id=="sdlg"){$("sdlg").close();return}
@@ -134,26 +138,53 @@ function place(f,s,i,mode){const row=S.pl[f],prev=row[s],o=i>=0?row.indexOf(i):-
   else if(o<0)S.subs.push({f,m:minute(),out:prev,in:i<0?null:i,pos:POS[s][0],t:Date.now()})}
  if(i<0)row[s]=null;else{if(o>-1)row[o]=prev;row[s]=i}}
 // Keuzelijst: eerst de bank, dan wie al op dit veld staat (die wisselen van plaats)
-function openPick(f,s,keep){
+function openPick(f,s,listOnly){
  if(undoFn)hideToast();
- if(!keep)pmode="sub";
- pick=[f,s];const row=S.pl[f],cur=row[s],L=live(f),fix=L&&pmode=="fix";
- const ids=S.names.map((n,i)=>i);
- // Bij een wissel: wie het minst speelde bovenaan; bij het opstellen: wie op de minste velden staat
- ids.sort(L?(a,b)=>S.sec[a]-S.sec[b]:(a,b)=>nf(a)-nf(b));
- if(s==0)ids.sort((a,b)=>isK(b)-isK(a));
- $("pt").textContent="Veld "+(f+1)+" · "+POS[s][0]+(cur!=null?" · nu: "+S.names[cur]:"");
- const item=i=>{const o=row.indexOf(i);return `<button class="pi ${i===cur?"cur":""}" data-pick="${i}" ${i===cur?"disabled":""}>${kit(i,26)}<span>${esc(S.names[i])}<small class="pm ${L?lvl(i):selLvl(i)}">${L?`⏱ ${Math.round(S.sec[i]/60)}' gespeeld`:`${dots(i)} op ${nf(i)} van 4 velden`}</small></span><small>${i===cur?"staat hier":o>-1?"⇄ "+(POS[o][3]||POS[o][0]):""}</small></button>`};
- const bank=ids.filter(i=>!row.includes(i)),veld=ids.filter(i=>row.includes(i));
- $("pact").innerHTML=(cur!=null?`<button class="pi gbtn" data-goalp="${cur}">⚽ Doelpunt voor ${esc(S.names[cur])}</button>`:"")+(L&&cur!=null?`<div class="seg pmode" role="group" aria-label="Soort wijziging"><button data-pmode="sub" class="${fix?"":"on"}">🔁 Wissel op ${minute()}'</button><button data-pmode="fix" class="${fix?"on":""}">✏️ Verbeteren</button></div>
-  <small class="hint">${fix?`Verkeerd ingegeven: de minuten van ${esc(S.names[cur])} op dit veld gaan naar de speler die je kiest. Geen wissel in het verloop.`:`${esc(S.names[cur])} gaat eruit en houdt zijn minuten. De wissel komt in het wedstrijdverloop.`}</small>`:"");
- // Doelpunt en Wissel/Verbeteren staan vast bovenaan; alleen de spelerslijst scrolt
- $("pact").hidden=cur==null;
- $("plist").innerHTML=`<b class="pg">Op de bank</b>`+bank.map(item).join("")+
-  (veld.length?`<b class="pg">Op dit veld <small>(wisselen van plaats)</small></b>`+veld.map(item).join(""):"")+
-  (cur!=null?`<button class="pi o" data-pick="-1">✕ Positie leegmaken</button>`:"");
+ pick=[f,s];const row=S.pl[f],cur=row[s],L=live(f);
+ $("pt").textContent="Veld "+(f+1)+" · "+POS[s][0]+(cur!=null?" · "+S.names[cur]:"");
+ // Tijdens de wedstrijd eerst een keuzemenu met grote knoppen
+ if(L&&cur!=null&&!listOnly){const n=esc(S.names[cur]);
+  $("pact").hidden=false;$("pact").innerHTML=`<button class="pi gbtn" data-goalp="${cur}">⚽ Doelpunt voor ${n}</button>
+   <button class="pi act" data-act="sub">🔁 Wisselen<small>${n} gaat eruit, jij kiest wie erin komt</small></button>
+   <button class="pi act" data-act="fix">✏️ Verkeerde speler ingegeven<small>Kies wie er eigenlijk stond (geen wissel)</small></button>
+   <button class="pi act" data-act="move">⇄ Van plaats wisselen<small>met een speler op dit veld</small></button>`;
+  $("plist").hidden=true;$("plist").innerHTML="";
+ }else{
+  const ids=S.names.map((n,i)=>i);
+  // Bij het opstellen: wie op de minste velden staat bovenaan; tijdens de wedstrijd: wie het minst speelde
+  ids.sort(L?(a,b)=>S.sec[a]-S.sec[b]:(a,b)=>nf(a)-nf(b));
+  if(s==0)ids.sort((a,b)=>isK(b)-isK(a));
+  const item=i=>{const o=row.indexOf(i);return `<button class="pi ${i===cur?"cur":""}" data-pick="${i}" ${i===cur?"disabled":""}>${kit(i,26)}<span>${esc(S.names[i])}<small class="pm ${L?lvl(i):selLvl(i)}">${L?`⏱ ${Math.round(S.sec[i]/60)}' gespeeld`:`${dots(i)} op ${nf(i)} van 4 velden`}</small></span><small>${i===cur?"staat hier":o>-1?"⇄ "+(POS[o][3]||POS[o][0]):""}</small></button>`};
+  const bank=ids.filter(i=>!row.includes(i)),veld=ids.filter(i=>row.includes(i));
+  $("pact").hidden=!(cur!=null&&!L);$("pact").innerHTML=cur!=null&&!L?`<button class="pi gbtn" data-goalp="${cur}">⚽ Doelpunt voor ${esc(S.names[cur])}</button>`:"";
+  $("plist").hidden=false;
+  $("plist").innerHTML=listOnly?`<b class="pg">Wissel van plaats met</b>`+veld.filter(i=>i!==cur).map(item).join(""):
+   `<b class="pg">Op de bank</b>`+bank.map(item).join("")+(veld.length?`<b class="pg">Op dit veld <small>(wisselen van plaats)</small></b>`+veld.map(item).join(""):"")+
+   (cur!=null?`<button class="pi o" data-pick="-1">✕ Positie leegmaken</button>`:"");
+ }
  if(!$("pick").open)$("pick").showModal();$("plist").scrollTop=0;$("pick").scrollTop=0;
 }
+// Wissel in stappen: wie gaat eruit (spelers op het lopende veld), wie komt erin (bank)
+let swap=null;
+function openSwapOut(){if(undoFn)hideToast();const f=S.per,row=S.pl[f],L=live(f);
+ $("gt").textContent=L?"🔁 Wissel op "+minute()+"' · wie gaat eruit?":"🔁 Veld "+(f+1)+" · wie wil je vervangen?";
+ const on=row.map((p,s)=>[p,s]).filter(x=>x[0]!=null);
+ $("glist").innerHTML=on.length?`<div class="gg">${on.map(([p,s])=>`<button class="gs" data-swout="${s}">${kit(p,24)}<span>${esc(S.names[p])}<small>${esc(POS[s][3]||POS[s][0])}</small></span></button>`).join("")}</div>`:`<p class="hint">Nog niemand opgesteld op veld ${f+1}.</p>`;
+ if(!$("gdlg").open)$("gdlg").showModal()}
+function openSwapIn(f,s,mode,back){swap={f,s,mode,back};const row=S.pl[f],out=row[s],n=esc(S.names[out]);
+ const ids=S.names.map((x,i)=>i).filter(i=>!row.includes(i)).sort((a,b)=>S.sec[a]-S.sec[b]);if(s==0)ids.sort((a,b)=>isK(b)-isK(a));
+ $("gt").textContent=mode=="fix"?"✏️ Wie stond er eigenlijk i.p.v. "+S.names[out]+"?":"🔁 Wie komt erin voor "+S.names[out]+"?";
+ $("glist").innerHTML=(mode=="fix"?`<p class="hint">De minuten van ${n} op dit veld gaan naar de speler die je kiest. Er komt geen wissel in het verloop.</p>`:"")+
+  (ids.length?`<div class="gg">${ids.map(i=>`<button class="gs" data-swin="${i}">${kit(i,24)}<span>${esc(S.names[i])}<small class="pm ${lvl(i)}">⏱ ${Math.round(S.sec[i]/60)}' gespeeld</small></span></button>`).join("")}</div>`:`<p class="hint">Niemand meer op de bank.</p>`)+
+  `<div class="gx"><button class="o" data-swback="1">‹ Terug</button></div>`;
+ if(!$("gdlg").open)$("gdlg").showModal();$("glist").scrollTop=0}
+function doSwap(i){const{f,s,mode}=swap,row=S.pl[f],out=row[s],L=live(f);if(L&&run)tick();
+ // Gegevens om de wissel binnen enkele seconden ongedaan te maken
+ const before=row.slice(),nSubs=S.subs.length,w=S.subs.filter(x=>x.f==f&&x.in===out).pop(),wIn=w&&w.in,i0=S.fsec[f][i];
+ place(f,s,i,mode);$("gdlg").close();save();render();
+ toast(mode=="fix"?"✏️ "+S.names[out]+" vervangen door "+S.names[i]:"🔁 "+S.names[i]+" erin voor "+S.names[out]+(L?" ("+minute()+"')":""),()=>{
+  if(run)tick();const d=S.fsec[f][i]-i0;if(L&&d>0){S.fsec[f][i]-=d;S.sec[i]-=d;S.fsec[f][out]+=d;S.sec[out]+=d}
+  S.pl[f]=before;S.subs.length=nSubs;if(w)w.in=wIn;render()})}
 document.addEventListener("change",e=>{if(e.target.dataset.n!=null){S.names[+e.target.dataset.n]=e.target.value||"Speler";save();render()}});
 function up(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement("canvas");const k=Math.min(1,256/Math.max(im.width,im.height));c.width=im.width*k;c.height=im.height*k;c.getContext("2d").drawImage(im,0,0,c.width,c.height);S.logo=c.toDataURL("image/png");save();render()};im.src=r.result};r.readAsDataURL(f)}
 $("lf").onchange=up;
@@ -214,6 +245,7 @@ function openScorers(all){if(undoFn)hideToast();
   (all?"":`<div class="gx"><button class="o" data-gmore="1">Andere speler…</button></div>`);
  if(!$("gdlg").open)$("gdlg").showModal()}
 $("ug").onclick=()=>openScorers(false);
+$("wis").onclick=openSwapOut;
 $("og").onclick=()=>{if(run)tick();const g={f:S.per,m:minute(),t:Date.now()};S.og.push(g);save();renderGoals();toast("⚽ Tegengoal "+oppName()+" ("+g.m+"')",()=>{S.og.splice(S.og.indexOf(g),1)})};
 // Spelvorm 8 of 11: elke spelvorm bewaart zijn eigen opstelling
 function setFmt(n){if(n==S.fmt)return;S.lineups[S.fmt]=S.pl;S.fmt=n;S.pl=S.lineups[n]||empty(n);POS=n==11?POS11:POS8}

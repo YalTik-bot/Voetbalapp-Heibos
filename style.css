@@ -55,7 +55,7 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
 .ph{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:var(--card)}
 .pi.gbtn{justify-content:center;background:var(--gr);color:#fff;border:0;font-weight:700;font-size:16px;min-height:48px}
 .toast[hidden]{display:none}.undo{flex:none;background:#fff;color:#1d1530;min-height:34px;padding:4px 10px;font-weight:700}
-.pg{font-size:13px;color:var(--mut);margin-top:6px}.pmode{display:flex;margin-bottom:2px}.pmode button{flex:1}.pi:disabled{opacity:.6}
+.pg{font-size:13px;color:var(--mut);margin-top:6px}.pi:disabled{opacity:.6}
 #pick[open]{display:flex;flex-direction:column;overflow:hidden}
 #pact{display:flex;flex-direction:column;gap:6px;padding:10px 12px 8px;border-bottom:1px solid var(--bd);flex:none}
 #plist{outline:0;display:flex;flex-direction:column;gap:6px;padding:10px 12px;overflow:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch}
@@ -69,7 +69,10 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
 #glist{padding:12px;display:flex;flex-direction:column;gap:10px;overflow:auto}
 .gg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .gs{display:flex;align-items:center;gap:8px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);min-height:52px;padding:6px 10px;text-align:left;font-size:15px;font-weight:600}
-.gs span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gs span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.gs small{display:block;font-size:12px;font-weight:400;color:var(--mut)}.gs small.pm.low{color:var(--red)}.gs small.pm.mid{color:#d98c00}.gs small.pm.high{color:var(--gr)}
+.gl .wisb{grid-column:1/-1;background:var(--pu)}
+.pi.act{flex-direction:column;align-items:flex-start;gap:2px;font-size:16px;font-weight:700;min-height:56px;justify-content:center}.pi.act small{font-size:13px;font-weight:400;color:var(--mut)}
+#glist p.hint{margin:0}
 .gx{display:flex;gap:8px;flex-wrap:wrap}.gx button{flex:1;min-height:42px;font-size:14px}
 #gdlg[open]{display:flex;flex-direction:column}
 .mi{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px;color:var(--mut);font-size:13px;flex-wrap:wrap}
