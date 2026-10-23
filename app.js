@@ -61,7 +61,7 @@ function render(){
  $("tabs").innerHTML=S.pl.map((f,fi)=>`<button class="tab ${fi==view?"on":""}" data-v="${fi}">Veld ${fi+1}${fi==S.per?" ●":""}<small>${fi*20}–${fi*20+20}'</small></button>`).join("");
  $("fields").innerHTML=S.pl.map((f,fi)=>`<div class="fw ${fi==view?"vis":""}"><div class="fh ${fi==S.per?"act":""}"><span>Veld ${fi+1} <small>${fi*20}–${fi*20+20} min</small></span>${move?`<button class="sw" data-rxy="${fi}">↺ Standaardposities</button>`:fi==S.per?'<span class="now">● Nu bezig</span>':`<button class="sw" data-f="${fi}">⇄ Naar dit veld</button>`}</div><div class="pitch ${fi==S.per?"act":""}">`+
   POS.map((p,si)=>{const pi=f[si],[x,y]=at(fi,si);return `<div class="slot" style="left:${x}%;top:${y}%" data-f="${fi}" data-s="${si}">`+
-  (pi==null?'<div class="empty"></div>':`<span class="tok">${kit(pi)}<button class="g1 noprint" data-goal="${fi},${pi}">⚽</button></span><span class="lbl">${esc(S.names[pi])}</span><span class="lbl fm" data-fm="${fi},${pi}">⏱ ${fmt(S.fsec[fi][pi])}</span>`)+
+  (pi==null?'<div class="empty"></div>':`<span class="tok">${kit(pi)}</span><span class="lbl">${esc(S.names[pi])}</span><span class="lbl fm" data-fm="${fi},${pi}">⏱ ${fmt(S.fsec[fi][pi])}</span>`)+
   `<span class="lbl" style="opacity:.85">${pi==null?p[3]||p[0]:""}</span></div>`}).join("")+`</div></div>`).join("");
  $("bench").innerHTML=S.names.map((n,i)=>`<div class="b ${sel===i?"sel":""} ${S.pl[view].includes(i)?"on":""}"><div class="t" data-b="${i}">${kit(i)}<br><small>${isK(i)?"Keeper":"Speler"}</small></div><input value="${esc(n)}" data-n="${i}" maxlength="20"><span class="s4 ${selLvl(i)}" title="Opgesteld op ${nf(i)} van de 4 velden">${dots(i)} ${nf(i)}/4</span><small>⏱ <span data-min="${i}">${fmt(S.sec[i])}</span></small><span class="ptb" data-bar="${i}" title="Gespeelde minuten (volle balk = speler met de meeste minuten)"><i></i></span></div>`).join("");
  $("selsum").innerHTML=selSummary();paintBars();renderGoals();
@@ -78,7 +78,10 @@ function renderGoals(){
 }
 document.addEventListener("click",e=>{
  const t=e.target;
- if(t.dataset.goal&&!move){const[f,p]=t.dataset.goal.split(",").map(Number);S.goals.push({p,m:f==S.per?minute():f*20+20,t:Date.now()});save();renderGoals();return}
+ // Doelpunt via het venster van de speler, met "ongedaan maken" in de melding
+ const gp=t.closest("[data-goalp]");if(gp&&pick){const f=pick[0],p=+gp.dataset.goalp;if(run)tick();const g={p,m:f==S.per?minute():f*20+20,t:Date.now()};
+  S.goals.push(g);$("pick").close();save();renderGoals();toast("⚽ Doelpunt "+S.names[p]+" ("+g.m+"')",()=>{S.goals.splice(S.goals.indexOf(g),1)});return}
+ if(t.closest("[data-undo]")){const u=undoFn;undoFn=null;$("toast").hidden=true;if(u){u();save();renderGoals()}return}
  if(t.dataset.del){S.goals.splice(+t.dataset.del,1);save();renderGoals();return}
  if(t.dataset.dog){S.og.splice(+t.dataset.dog,1);save();renderGoals();return}
  if(t.dataset.dsub){S.subs.splice(+t.dataset.dsub,1);save();renderGoals();return}
@@ -132,7 +135,7 @@ function openPick(f,s,keep){
  $("pt").textContent="Veld "+(f+1)+" · "+POS[s][0]+(cur!=null?" · nu: "+S.names[cur]:"");
  const item=i=>{const o=row.indexOf(i);return `<button class="pi ${i===cur?"cur":""}" data-pick="${i}" ${i===cur?"disabled":""}>${kit(i,26)}<span>${esc(S.names[i])}<small class="pm ${L?lvl(i):selLvl(i)}">${L?`⏱ ${Math.round(S.sec[i]/60)}' gespeeld`:`${dots(i)} op ${nf(i)} van 4 velden`}</small></span><small>${i===cur?"staat hier":o>-1?"⇄ "+(POS[o][3]||POS[o][0]):""}</small></button>`};
  const bank=ids.filter(i=>!row.includes(i)),veld=ids.filter(i=>row.includes(i));
- $("plist").innerHTML=(L&&cur!=null?`<div class="seg pmode" role="group" aria-label="Soort wijziging"><button data-pmode="sub" class="${fix?"":"on"}">🔁 Wissel op ${minute()}'</button><button data-pmode="fix" class="${fix?"on":""}">✏️ Verbeteren</button></div>
+ $("plist").innerHTML=(cur!=null?`<button class="pi gbtn" data-goalp="${cur}">⚽ Doelpunt voor ${esc(S.names[cur])}</button>`:"")+(L&&cur!=null?`<div class="seg pmode" role="group" aria-label="Soort wijziging"><button data-pmode="sub" class="${fix?"":"on"}">🔁 Wissel op ${minute()}'</button><button data-pmode="fix" class="${fix?"on":""}">✏️ Verbeteren</button></div>
   <small class="hint">${fix?`Verkeerd ingegeven: de minuten van ${esc(S.names[cur])} op dit veld gaan naar de speler die je kiest. Geen wissel in het verloop.`:`${esc(S.names[cur])} gaat eruit en houdt zijn minuten. De wissel komt in het wedstrijdverloop.`}</small>`:"")+
   `<b class="pg">Op de bank</b>`+bank.map(item).join("")+
   (veld.length?`<b class="pg">Op dit veld <small>(wisselen van plaats)</small></b>`+veld.map(item).join(""):"")+
@@ -167,7 +170,8 @@ function audio(){try{actx=actx||new(window.AudioContext||window.webkitAudioConte
 function beep(n,hz){if(!actx)return;for(let k=0;k<n;k++){const o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime+k*.45;
  o.frequency.value=hz;o.connect(g);g.connect(actx.destination);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.5,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.35);o.start(t);o.stop(t+.4)}}
 let toastT;
-function toast(m){const el=$("toast");el.textContent=m;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,6000)}
+let undoFn=null;
+function toast(m,undo){const el=$("toast");undoFn=undo||null;el.innerHTML=esc(m)+(undo?' <button class="undo" data-undo="1">Ongedaan maken</button>':"");el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{el.hidden=true;undoFn=null},undo?8000:6000)}
 function signal(kind){
  const end=kind=="end",f=S.per+1;
  toast(end?"⏱ Einde van veld "+f+(f<4?" – volgende: veld "+(f+1):" – wedstrijd voorbij"):"⏱ Nog 2 minuten op veld "+f+" – zet je wissels klaar");
@@ -181,7 +185,7 @@ function resetMatch(){stop();S.per=view=0;S.rem=1200;S.sec=Array(N).fill(0);S.fs
 $("rs").onclick=()=>{if(confirm("Tijd, spelersminuten en doelpunten (ook van de tegenstander) resetten? (opstelling en namen blijven)")){resetMatch();save();render()}};
 $("pr").onclick=()=>window.print();
 // Doelpunt van de tegenstander, op de minuut van de lopende klok
-$("og").onclick=()=>{if(run)tick();S.og.push({f:S.per,m:minute(),t:Date.now()});save();renderGoals()};
+$("og").onclick=()=>{if(run)tick();const g={f:S.per,m:minute(),t:Date.now()};S.og.push(g);save();renderGoals();toast("⚽ Tegengoal "+oppName()+" ("+g.m+"')",()=>{S.og.splice(S.og.indexOf(g),1)})};
 // Spelvorm 8 of 11: elke spelvorm bewaart zijn eigen opstelling
 function setFmt(n){if(n==S.fmt)return;S.lineups[S.fmt]=S.pl;S.fmt=n;S.pl=S.lineups[n]||empty(n);POS=n==11?POS11:POS8}
 // Wedstrijdgegevens: verschijnt bij het opstarten en via de datumknop
