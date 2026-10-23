@@ -30,6 +30,14 @@ const shortDate=s=>{if(!s)return"";const[y,m,d]=s.split("-").map(Number);return 
 const oppName=()=>S.opp||"Tegenstander";
 const score=()=>S.goals.length+" – "+S.og.length;
 // Speeltijd vergeleken met de rest van de ploeg: rood = speelde het minst, oranje = midden, groen = al veel
+// Op hoeveel van de 4 velden een speler is opgesteld; kleur tegenover zijn groep (veldspelers of keepers)
+const nf=i=>S.pl.filter(f=>f.includes(i)).length;
+const dots=i=>S.pl.map(f=>f.includes(i)?"●":"○").join("");
+function selLvl(i){const c=S.names.map((n,j)=>j).filter(j=>isK(j)==isK(i)).map(nf),mn=Math.min(...c),mx=Math.max(...c),v=nf(i);
+ if(mx==mn)return v?"high":"none";const t=(v-mn)/(mx-mn);return t<1/3?"low":t>2/3?"high":"mid"}
+function selSummary(){const fp=S.names.map((n,i)=>i).filter(i=>!isK(i)),mn=Math.min(...fp.map(nf)),mx=Math.max(...fp.map(nf));
+ if(mx==0)return"Nog niemand opgesteld.";if(mn==mx)return`✓ Alle veldspelers staan op ${mn} van de 4 velden.`;
+ return`Minst geselecteerd: <b>${fp.filter(i=>nf(i)==mn).map(i=>esc(S.names[i])).join(", ")}</b> (${mn} van 4 velden)`}
 const lvl=p=>{const max=Math.max(...S.sec);if(!max)return"none";const r=S.sec[p]/max;return r<1/3?"low":r<2/3?"mid":"high"};
 // Balklengte tegenover de speler met de meeste minuten
 function paintBars(){const max=Math.max(1,...S.sec);document.querySelectorAll("[data-bar]").forEach(el=>{const p=+el.dataset.bar;
@@ -50,8 +58,8 @@ function render(){
   POS.map((p,si)=>{const pi=f[si],[x,y]=at(fi,si);return `<div class="slot" style="left:${x}%;top:${y}%" data-f="${fi}" data-s="${si}">`+
   (pi==null?'<div class="empty"></div>':`<span class="tok">${kit(pi)}<button class="g1 noprint" data-goal="${fi},${pi}">⚽</button></span><span class="lbl">${esc(S.names[pi])}</span><span class="lbl fm" data-fm="${fi},${pi}">⏱ ${fmt(S.fsec[fi][pi])}</span>`)+
   `<span class="lbl" style="opacity:.85">${pi==null?p[3]||p[0]:""}</span></div>`}).join("")+`</div></div>`).join("");
- $("bench").innerHTML=S.names.map((n,i)=>`<div class="b ${sel===i?"sel":""} ${S.pl[view].includes(i)?"on":""}"><div class="t" data-b="${i}">${kit(i)}<br><small>${isK(i)?"Keeper":"Speler"}</small></div><input value="${esc(n)}" data-n="${i}" maxlength="20"><small>⏱ <span data-min="${i}">${fmt(S.sec[i])}</span></small><span class="ptb" data-bar="${i}" title="Gespeelde minuten (volle balk = speler met de meeste minuten)"><i></i></span></div>`).join("");
- paintBars();renderGoals();
+ $("bench").innerHTML=S.names.map((n,i)=>`<div class="b ${sel===i?"sel":""} ${S.pl[view].includes(i)?"on":""}"><div class="t" data-b="${i}">${kit(i)}<br><small>${isK(i)?"Keeper":"Speler"}</small></div><input value="${esc(n)}" data-n="${i}" maxlength="20"><span class="s4 ${selLvl(i)}" title="Opgesteld op ${nf(i)} van de 4 velden">${dots(i)} ${nf(i)}/4</span><small>⏱ <span data-min="${i}">${fmt(S.sec[i])}</span></small><span class="ptb" data-bar="${i}" title="Gespeelde minuten (volle balk = speler met de meeste minuten)"><i></i></span></div>`).join("");
+ $("selsum").innerHTML=selSummary();paintBars();renderGoals();
 }
 // Doelpunten van beide ploegen samen, met de stand na elk doelpunt
 function renderGoals(){
@@ -104,11 +112,12 @@ function openPick(f,s){
  pick=[f,s];const row=S.pl[f],cur=row[s];
  const ids=S.names.map((n,i)=>i);
  // Bij een wissel eerst de spelers die nog niet op het veld staan, met de minste speeltijd bovenaan
- if(live(f))ids.sort((a,b)=>row.includes(a)-row.includes(b)||S.sec[a]-S.sec[b]);
+ // Bij een wissel: wie het minst speelde; bij het opstellen: wie op de minste velden staat, bovenaan
+ if(live(f))ids.sort((a,b)=>row.includes(a)-row.includes(b)||S.sec[a]-S.sec[b]);else ids.sort((a,b)=>nf(a)-nf(b));
  if(s==0)ids.sort((a,b)=>isK(b)-isK(a));
  $("pt").textContent=(live(f)?"🔁 Wissel op "+minute()+"' · ":"")+"Veld "+(f+1)+" · "+POS[s][0];
  $("plist").innerHTML=(cur!=null?`<button class="pi o" data-pick="-1">✕ Positie leegmaken</button>`:"")+ids.map(i=>{const o=row.indexOf(i);
-  return `<button class="pi ${i===cur?"cur":""}" data-pick="${i}">${kit(i,26)}<span>${esc(S.names[i])}<small class="pm ${lvl(i)}">⏱ ${Math.round(S.sec[i]/60)}' gespeeld</small></span><small>${o>-1?POS[o][0]:""}</small></button>`}).join("");
+  return `<button class="pi ${i===cur?"cur":""}" data-pick="${i}">${kit(i,26)}<span>${esc(S.names[i])}<small class="pm ${live(f)?lvl(i):selLvl(i)}">${live(f)?`⏱ ${Math.round(S.sec[i]/60)}' gespeeld`:`${dots(i)} op ${nf(i)} van 4 velden`}</small></span><small>${o>-1?POS[o][0]:""}</small></button>`}).join("");
  $("pick").showModal();
 }
 document.addEventListener("change",e=>{if(e.target.dataset.n!=null){S.names[+e.target.dataset.n]=e.target.value||"Speler";save();render()}});
