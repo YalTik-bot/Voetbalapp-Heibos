@@ -1,0 +1,11 @@
+{
+  "name": "voetbalapp-heibos",
+  "private": true,
+  "description": "Opstelling & wedstrijdklok voor K. Heibos S.V. Kalmthout",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}
