@@ -85,7 +85,7 @@ document.addEventListener("click",e=>{
  const t=e.target;
  // Doelpunt via het venster van de speler, met "ongedaan maken" in de melding
  const gp=t.closest("[data-goalp]");if(gp&&pick){const f=pick[0],p=+gp.dataset.goalp;if(run)tick();const g={p,m:f==S.per?minute():f*20+20,t:Date.now()};
-  S.goals.push(g);$("pick").close();save();renderGoals();toast("⚽ Doelpunt "+S.names[p]+" ("+g.m+"')",()=>{S.goals.splice(S.goals.indexOf(g),1)});return}
+  S.goals.push(g);$("pick").close();save();renderGoals();toast("⚽ Doelpunt "+S.names[p]+" ("+g.m+"')",()=>{rm(S.goals,g)});return}
  if(t.closest("[data-undo]")){const u=undoFn;hideToast();if(u){u();save();renderGoals()}return}
  if(t.closest("#toast")){hideToast();return}
  const gs=t.closest("[data-gscorer]");if(gs){scoreGoal(+gs.dataset.gscorer);$("gdlg").close();return}
@@ -214,6 +214,8 @@ function beep(n,hz){if(!actx)return;for(let k=0;k<n;k++){const o=actx.createOsci
  o.frequency.value=hz;o.connect(g);g.connect(actx.destination);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.5,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.35);o.start(t);o.stop(t+.4)}}
 let toastT;
 let undoFn=null;
+// Alleen verwijderen als het doelpunt er nog staat (kan al met ✕ weg zijn)
+const rm=(a,g)=>{const i=a.indexOf(g);if(i>-1)a.splice(i,1)};
 const hideToast=()=>{clearTimeout(toastT);$("toast").hidden=true;undoFn=null};
 function toast(m,undo,ms){const el=$("toast");undoFn=undo||null;el.innerHTML="<span>"+esc(m)+"</span>"+(undo?'<button class="undo" data-undo="1">Ongedaan maken</button>':"");el.hidden=false;clearTimeout(toastT);toastT=setTimeout(hideToast,ms||(undo?4000:6000))}
 function signal(kind){
@@ -237,7 +239,7 @@ $("pr").onclick=()=>window.print();
 // Doelpunt van de tegenstander, op de minuut van de lopende klok
 // Doelpunt Heibos: kies de scorer uit wie nu op het lopende veld staat (grote knoppen, zonder scrollen)
 function scoreGoal(p){if(run)tick();const g={p,m:minute(),t:Date.now()};S.goals.push(g);save();renderGoals();
- toast("⚽ Doelpunt "+S.names[p]+" ("+g.m+"')",()=>{S.goals.splice(S.goals.indexOf(g),1)})}
+ toast("⚽ Doelpunt "+S.names[p]+" ("+g.m+"')",()=>{rm(S.goals,g)})}
 function openScorers(all){if(undoFn)hideToast();
  const on=S.pl[S.per].filter(i=>i!=null),ids=all?S.names.map((n,i)=>i).filter(i=>!on.includes(i)):on;
  $("gt").textContent=all?"⚽ Andere speler":"⚽ Wie scoorde? · veld "+(S.per+1)+" · "+minute()+"'";
@@ -246,7 +248,7 @@ function openScorers(all){if(undoFn)hideToast();
  if(!$("gdlg").open)$("gdlg").showModal()}
 $("ug").onclick=()=>openScorers(false);
 $("wis").onclick=openSwapOut;
-$("og").onclick=()=>{if(run)tick();const g={f:S.per,m:minute(),t:Date.now()};S.og.push(g);save();renderGoals();toast("⚽ Tegengoal "+oppName()+" ("+g.m+"')",()=>{S.og.splice(S.og.indexOf(g),1)})};
+$("og").onclick=()=>{if(run)tick();const g={f:S.per,m:minute(),t:Date.now()};S.og.push(g);save();renderGoals();toast("⚽ Tegengoal "+oppName()+" ("+g.m+"')",()=>{rm(S.og,g)})};
 // Spelvorm 8 of 11: elke spelvorm bewaart zijn eigen opstelling
 function setFmt(n){if(n==S.fmt)return;S.lineups[S.fmt]=S.pl;S.fmt=n;S.pl=S.lineups[n]||empty(n);POS=n==11?POS11:POS8}
 // Wedstrijdgegevens: verschijnt bij het opstarten en via de datumknop
