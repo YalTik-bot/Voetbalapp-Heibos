@@ -27,8 +27,8 @@ button,.slot,.b .t,.fh{touch-action:manipulation;-webkit-tap-highlight-color:tra
 .now{background:var(--gr);color:#fff;border-radius:999px;padding:5px 12px;font-size:13px}
 .pitch{position:relative;aspect-ratio:3/4;background:repeating-linear-gradient(#3c9d4a 0 12.5%,#35923f 12.5% 25%);border:3px solid #fff;border-radius:6px;overflow:hidden}
 .pitch.act{outline:3px solid var(--pu)}
-.pitch:before{content:"";position:absolute;left:25%;right:25%;top:0;height:16%;border:2px solid #fff;border-top:0}
-.pitch:after{content:"";position:absolute;left:50%;bottom:-18%;width:36%;aspect-ratio:1;border:2px solid #fff;border-radius:50%;transform:translateX(-50%)}
+.pitch:before{content:"";position:absolute;left:25%;right:25%;bottom:0;height:16%;border:2px solid #fff;border-bottom:0}
+.pitch:after{content:"";position:absolute;left:50%;top:-18%;width:36%;aspect-ratio:1;border:2px solid #fff;border-radius:50%;transform:translateX(-50%)}
 /* De lijnen van het veld mogen geen tikken opvangen (de middencirkel lag over de spits) */
 .pitch:before,.pitch:after{pointer-events:none}
 .slot{position:absolute;transform:translate(-50%,-50%);width:25%;padding:4px 0;z-index:1;text-align:center;cursor:pointer;font-size:10px;color:#fff}
