@@ -81,7 +81,8 @@ document.addEventListener("click",e=>{
  // Doelpunt via het venster van de speler, met "ongedaan maken" in de melding
  const gp=t.closest("[data-goalp]");if(gp&&pick){const f=pick[0],p=+gp.dataset.goalp;if(run)tick();const g={p,m:f==S.per?minute():f*20+20,t:Date.now()};
   S.goals.push(g);$("pick").close();save();renderGoals();toast("⚽ Doelpunt "+S.names[p]+" ("+g.m+"')",()=>{S.goals.splice(S.goals.indexOf(g),1)});return}
- if(t.closest("[data-undo]")){const u=undoFn;undoFn=null;$("toast").hidden=true;if(u){u();save();renderGoals()}return}
+ if(t.closest("[data-undo]")){const u=undoFn;hideToast();if(u){u();save();renderGoals()}return}
+ if(t.closest("#toast")){hideToast();return}
  if(t.dataset.del){S.goals.splice(+t.dataset.del,1);save();renderGoals();return}
  if(t.dataset.dog){S.og.splice(+t.dataset.dog,1);save();renderGoals();return}
  if(t.dataset.dsub){S.subs.splice(+t.dataset.dsub,1);save();renderGoals();return}
@@ -126,6 +127,7 @@ function place(f,s,i,mode){const row=S.pl[f],prev=row[s],o=i>=0?row.indexOf(i):-
  if(i<0)row[s]=null;else{if(o>-1)row[o]=prev;row[s]=i}}
 // Keuzelijst: eerst de bank, dan wie al op dit veld staat (die wisselen van plaats)
 function openPick(f,s,keep){
+ if(undoFn)hideToast();
  if(!keep)pmode="sub";
  pick=[f,s];const row=S.pl[f],cur=row[s],L=live(f),fix=L&&pmode=="fix";
  const ids=S.names.map((n,i)=>i);
@@ -173,7 +175,8 @@ function beep(n,hz){if(!actx)return;for(let k=0;k<n;k++){const o=actx.createOsci
  o.frequency.value=hz;o.connect(g);g.connect(actx.destination);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.5,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.35);o.start(t);o.stop(t+.4)}}
 let toastT;
 let undoFn=null;
-function toast(m,undo){const el=$("toast");undoFn=undo||null;el.innerHTML=esc(m)+(undo?' <button class="undo" data-undo="1">Ongedaan maken</button>':"");el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{el.hidden=true;undoFn=null},undo?8000:6000)}
+const hideToast=()=>{clearTimeout(toastT);$("toast").hidden=true;undoFn=null};
+function toast(m,undo){const el=$("toast");undoFn=undo||null;el.innerHTML="<span>"+esc(m)+"</span>"+(undo?'<button class="undo" data-undo="1">Ongedaan maken</button>':"");el.hidden=false;clearTimeout(toastT);toastT=setTimeout(hideToast,undo?4000:6000)}
 function signal(kind){
  const end=kind=="end",f=S.per+1;
  toast(end?"⏱ Einde van veld "+f+(f<4?" – volgende: veld "+(f+1):" – wedstrijd voorbij"):"⏱ Nog 2 minuten op veld "+f+" – zet je wissels klaar");
