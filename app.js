@@ -135,9 +135,11 @@ function openPick(f,s,keep){
  $("pt").textContent="Veld "+(f+1)+" · "+POS[s][0]+(cur!=null?" · nu: "+S.names[cur]:"");
  const item=i=>{const o=row.indexOf(i);return `<button class="pi ${i===cur?"cur":""}" data-pick="${i}" ${i===cur?"disabled":""}>${kit(i,26)}<span>${esc(S.names[i])}<small class="pm ${L?lvl(i):selLvl(i)}">${L?`⏱ ${Math.round(S.sec[i]/60)}' gespeeld`:`${dots(i)} op ${nf(i)} van 4 velden`}</small></span><small>${i===cur?"staat hier":o>-1?"⇄ "+(POS[o][3]||POS[o][0]):""}</small></button>`};
  const bank=ids.filter(i=>!row.includes(i)),veld=ids.filter(i=>row.includes(i));
- $("plist").innerHTML=(cur!=null?`<button class="pi gbtn" data-goalp="${cur}">⚽ Doelpunt voor ${esc(S.names[cur])}</button>`:"")+(L&&cur!=null?`<div class="seg pmode" role="group" aria-label="Soort wijziging"><button data-pmode="sub" class="${fix?"":"on"}">🔁 Wissel op ${minute()}'</button><button data-pmode="fix" class="${fix?"on":""}">✏️ Verbeteren</button></div>
-  <small class="hint">${fix?`Verkeerd ingegeven: de minuten van ${esc(S.names[cur])} op dit veld gaan naar de speler die je kiest. Geen wissel in het verloop.`:`${esc(S.names[cur])} gaat eruit en houdt zijn minuten. De wissel komt in het wedstrijdverloop.`}</small>`:"")+
-  `<b class="pg">Op de bank</b>`+bank.map(item).join("")+
+ $("pact").innerHTML=(cur!=null?`<button class="pi gbtn" data-goalp="${cur}">⚽ Doelpunt voor ${esc(S.names[cur])}</button>`:"")+(L&&cur!=null?`<div class="seg pmode" role="group" aria-label="Soort wijziging"><button data-pmode="sub" class="${fix?"":"on"}">🔁 Wissel op ${minute()}'</button><button data-pmode="fix" class="${fix?"on":""}">✏️ Verbeteren</button></div>
+  <small class="hint">${fix?`Verkeerd ingegeven: de minuten van ${esc(S.names[cur])} op dit veld gaan naar de speler die je kiest. Geen wissel in het verloop.`:`${esc(S.names[cur])} gaat eruit en houdt zijn minuten. De wissel komt in het wedstrijdverloop.`}</small>`:"");
+ // Doelpunt en Wissel/Verbeteren staan vast bovenaan; alleen de spelerslijst scrolt
+ $("pact").hidden=cur==null;
+ $("plist").innerHTML=`<b class="pg">Op de bank</b>`+bank.map(item).join("")+
   (veld.length?`<b class="pg">Op dit veld <small>(wisselen van plaats)</small></b>`+veld.map(item).join(""):"")+
   (cur!=null?`<button class="pi o" data-pick="-1">✕ Positie leegmaken</button>`:"");
  if(!$("pick").open)$("pick").showModal();$("plist").scrollTop=0;$("pick").scrollTop=0;

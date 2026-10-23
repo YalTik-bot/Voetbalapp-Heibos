@@ -51,7 +51,9 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
 .pi.gbtn{justify-content:center;background:var(--gr);color:#fff;border:0;font-weight:700;font-size:16px;min-height:48px}
 .undo{margin-left:8px;background:#fff;color:#1d1530;min-height:34px;padding:4px 10px;font-weight:700}
 .pg{font-size:13px;color:var(--mut);margin-top:6px}.pmode{display:flex;margin-bottom:2px}.pmode button{flex:1}.pi:disabled{opacity:.6}
-#plist{outline:0;display:flex;flex-direction:column;gap:6px;padding:10px 12px;overflow:auto}
+#pick[open]{display:flex;flex-direction:column;overflow:hidden}
+#pact{display:flex;flex-direction:column;gap:6px;padding:10px 12px 8px;border-bottom:1px solid var(--bd);flex:none}
+#plist{outline:0;display:flex;flex-direction:column;gap:6px;padding:10px 12px;overflow:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch}
 .pi{display:flex;align-items:center;gap:10px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);text-align:left;padding:6px 10px}
 .pi span{flex:1}.pi small{font-size:12px}.pi.cur{border:2px solid var(--pu)}.pi.o{background:#6f6880;color:#fff;justify-content:center}
 #match{padding:8px 10px}
