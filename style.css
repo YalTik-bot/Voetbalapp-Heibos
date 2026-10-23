@@ -92,6 +92,9 @@ tr.opp td{color:var(--mut)}
 .ptb i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:currentColor}
 .ptb.low,.pm.low{color:var(--red)}.ptb.mid,.pm.mid{color:#d98c00}.ptb.high,.pm.high{color:var(--gr)}
 .pi span small.pm{display:block;font-size:12px}
+.s4{display:block;font-size:13px;font-weight:700;letter-spacing:1px;margin-top:2px;font-variant-numeric:tabular-nums}
+.s4.low,.pm.low{color:var(--red)}.s4.mid{color:#d98c00}.s4.high{color:var(--gr)}.s4.none{color:var(--mut)}
+.selsum{margin-top:6px;font-size:14px}
 .lg{display:inline-block;padding:0 5px;border-radius:4px;color:#fff;font-size:11px}.lg.low{background:var(--red)}.lg.mid{background:#d98c00}.lg.high{background:var(--gr)}
 tr.sub td{font-size:13px}
 /* Seizoensoverzicht */
