@@ -20,6 +20,7 @@ Eenvoudige webapp om een voetbalwedstrijd van 80 minuten (4 × 20 min) te planne
 - Seizoensoverzicht (📊): uitslagen, gewonnen/gelijk/verloren, doelsaldo, topschutters en per speler wedstrijden, minuten, doelpunten en posities
 - Signaal: 2 minuten voor het einde van een veld een piep en trilling, op het einde 3 piepen
 - Werkt zonder internet nadat de app één keer geopend is (service worker `sw.js`)
+- Velden met de keeper onderaan: de ploeg speelt naar boven, zodat links en rechts kloppen met wat de spelers zien
 - Opstelling delen: knop 📤 maakt een link met namen en opstelling; wie de link opent kan ze overnemen
 - Donkere modus (knop 🌙/☀️ rechtsboven; volgt standaard de instelling van het toestel)
 - Handig op de GSM: klok blijft bovenaan staan, tabbladen per veld, tik een positie om een speler te kiezen, als app op het beginscherm te zetten

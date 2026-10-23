@@ -1,6 +1,9 @@
-const POS8=[["Keeper",50,9],["Laatste man",50,27],["Linksachter",20,43],["Rechtsachter",80,43],["Mid",50,59],["Linksvoor",20,76],["Rechtsvoor",80,76],["Spits",50,90]];
+let POS8=[["Keeper",50,9],["Laatste man",50,27],["Linksachter",20,43],["Rechtsachter",80,43],["Mid",50,59],["Linksvoor",20,76],["Rechtsvoor",80,76],["Spits",50,90]];
 // 11 spelers zoals op de schets: keeper, laatste man, daarna 3 rijen van 3 met de spits in de cirkel
-const POS11=[["Keeper",50,9],["Laatste man",50,27],["Linksachter",18,40],["Centrale verdediger",50,40,"Centrale verd."],["Rechtsachter",82,40],["Linksmidden",18,60],["Mid",50,60],["Rechtsmidden",82,60],["Linksvoor",18,82],["Spits",50,86],["Rechtsvoor",82,82]];
+let POS11=[["Keeper",50,9],["Laatste man",50,27],["Linksachter",18,40],["Centrale verdediger",50,40,"Centrale verd."],["Rechtsachter",82,40],["Linksmidden",18,60],["Mid",50,60],["Rechtsmidden",82,60],["Linksvoor",18,82],["Spits",50,86],["Rechtsvoor",82,82]];
+// Keeper onderaan, de ploeg speelt naar boven: zo staan links en rechts zoals de spelers ze zien
+const flipY=a=>a.map(p=>{const q=p.slice();q[2]=100-p[2];return q});
+POS8=flipY(POS8);POS11=flipY(POS11);
 const KEY="khs_v1";
 const NP=14,N=NP+2; // 14 veldspelers + 2 keepers
 const empty=n=>[0,1,2,3].map(()=>Array(n).fill(null));
@@ -10,6 +13,8 @@ try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.names)S=Object
 if(S.names.length==14){const m=i=>i==null?null:i<12?i+0:i+2,ins=a=>[...a.slice(0,12),0,0,...a.slice(12)];
  S.names=[...S.names.slice(0,12),"Speler 13","Speler 14",...S.names.slice(12)];S.sec=ins(S.sec);
  S.fsec=S.fsec.map(a=>a.length==14?ins(a):a);S.pl=S.pl.map(f=>f.map(m));S.goals.forEach(g=>g.p=m(g.p))}
+const flipXY=xy=>{for(const k in xy)(xy[k]||[]).forEach(o=>{for(const s in o)o[s][1]=100-o[s][1]})};
+if(!S.flip){flipXY(S.xy);for(const d in S.matches)flipXY(S.matches[d].xy||{});S.flip=1}
 const DEF_LOGO="logo.jpg";
 if(!S.logo)S.logo=DEF_LOGO;
 let POS=S.fmt==11?POS11:POS8;
@@ -234,7 +239,7 @@ dark.addEventListener("change",theme);theme();
 const b64=s=>btoa(String.fromCharCode(...new TextEncoder().encode(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 const unb64=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0)));
 $("sh").onclick=async()=>{
- const url=location.href.split("#")[0]+"#o="+b64(JSON.stringify({n:S.names,p:S.pl,f:S.fmt,xy:S.xy[S.fmt]||null,o:S.opp,d:S.date}));
+ const url=location.href.split("#")[0]+"#o="+b64(JSON.stringify({n:S.names,p:S.pl,f:S.fmt,xy:S.xy[S.fmt]||null,fl:1,o:S.opp,d:S.date}));
  try{if(navigator.share){await navigator.share({title:"Opstelling K. Heibos",text:"Opstelling K. Heibos S.V. Kalmthout"+(S.opp?" tegen "+S.opp:"")+" – open de link om ze over te nemen:",url});return}}catch(e){if(e.name=="AbortError")return}
  try{await navigator.clipboard.writeText(url);alert("Link gekopieerd. Plak hem in WhatsApp, mail, …")}catch(e){prompt("Kopieer deze link:",url)}
 };
@@ -248,7 +253,7 @@ function loadShared(){
  if(!confirm("Gedeelde opstelling overnemen"+(d.o?" (tegen "+d.o+")":"")+"? Je huidige namen en opstelling worden vervangen (klok, minuten en doelpunten blijven)."))return true;
  S.names=d.n.map(x=>String(x).slice(0,20)||"Speler");setFmt(n);S.pl=d.p;
  const xy=Array.isArray(d.xy)&&d.xy.length==4?d.xy.map(o=>{const r={};if(o&&typeof o=="object")for(const k in o){const v=o[k];if(+k>=0&&+k<n&&Array.isArray(v)&&v.length==2&&v.every(Number.isFinite))r[k]=[clamp(v[0],6,94),clamp(v[1],5,95)]}return r}):null;
- if(xy)S.xy[n]=xy;
+ if(xy){if(!d.fl)xy.forEach(o=>{for(const s in o)o[s][1]=100-o[s][1]});S.xy[n]=xy}
  if(typeof d.o=="string")S.opp=d.o.slice(0,30);if(/^\d{4}-\d\d-\d\d$/.test(d.d||""))S.date=d.d;
  save();return true;
 }
