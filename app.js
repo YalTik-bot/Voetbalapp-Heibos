@@ -73,7 +73,7 @@ function renderGoals(){
  $("goals").innerHTML=all.length?"<tr><th>Min</th><th>Gebeurtenis</th><th>Stand</th><th class=noprint></th></tr>"+all.map(g=>{
   if(g.k=="s")return `<tr class="sub"><td>${g.m}'</td><td>🔁 ${g.in!=null?`<b>${nm(g.in)}</b> erin`:""}${g.in!=null&&g.out!=null?" voor "+nm(g.out):g.out!=null?nm(g.out)+" eruit":""} <small>(${esc(g.pos)}, veld ${g.f+1})</small></td><td></td><td class="noprint"><button class="x" data-dsub="${g.i}" title="Uit het verloop halen">✕</button></td></tr>`;
   g.k=="g"?h++:a++;
-  return `<tr class="${g.k=="g"?"":"opp"}"><td>${g.m}'</td><td>⚽ ${g.k=="g"?(g.p<0?"Eigen doelpunt "+esc(oppName()):nm(g.p)):esc(oppName())}</td><td>${h}–${a}</td><td class="noprint"><button class="x" data-${g.k=="g"?"del":"dog"}="${g.i}">✕</button></td></tr>`}).join(""):"<tr><td class='hint'>Nog geen doelpunten of wissels.</td></tr>";
+  return `<tr class="${g.k=="g"?"":"opp"}"><td>${g.m}'</td><td>⚽ ${g.k=="g"?nm(g.p):esc(oppName())}</td><td>${h}–${a}</td><td class="noprint"><button class="x" data-${g.k=="g"?"del":"dog"}="${g.i}">✕</button></td></tr>`}).join(""):"<tr><td class='hint'>Nog geen doelpunten of wissels.</td></tr>";
  $("score").textContent=score();$("per").textContent="Veld "+(S.per+1)+" · "+S.per*20+"–"+(S.per+1)*20+" min · "+score().replace(" – ","–");
 }
 document.addEventListener("click",e=>{
@@ -195,12 +195,12 @@ $("pr").onclick=()=>window.print();
 // Doelpunt van de tegenstander, op de minuut van de lopende klok
 // Doelpunt Heibos: kies de scorer uit wie nu op het lopende veld staat (grote knoppen, zonder scrollen)
 function scoreGoal(p){if(run)tick();const g={p,m:minute(),t:Date.now()};S.goals.push(g);save();renderGoals();
- toast("⚽ "+(p<0?"Eigen doelpunt "+oppName():"Doelpunt "+S.names[p])+" ("+g.m+"')",()=>{S.goals.splice(S.goals.indexOf(g),1)})}
+ toast("⚽ Doelpunt "+S.names[p]+" ("+g.m+"')",()=>{S.goals.splice(S.goals.indexOf(g),1)})}
 function openScorers(all){if(undoFn)hideToast();
  const on=S.pl[S.per].filter(i=>i!=null),ids=all?S.names.map((n,i)=>i).filter(i=>!on.includes(i)):on;
  $("gt").textContent=all?"⚽ Andere speler":"⚽ Wie scoorde? · veld "+(S.per+1)+" · "+minute()+"'";
  $("glist").innerHTML=(ids.length?`<div class="gg">${ids.map(i=>`<button class="gs" data-gscorer="${i}">${kit(i,24)}<span>${esc(S.names[i])}</span></button>`).join("")}</div>`:`<p class="hint">Nog niemand opgesteld op veld ${S.per+1}.</p>`)+
-  (all?"":`<div class="gx"><button class="o" data-gmore="1">Andere speler…</button><button class="o" data-gscorer="-1">Eigen doelpunt tegenstander</button></div>`);
+  (all?"":`<div class="gx"><button class="o" data-gmore="1">Andere speler…</button></div>`);
  if(!$("gdlg").open)$("gdlg").showModal()}
 $("ug").onclick=()=>openScorers(false);
 $("og").onclick=()=>{if(run)tick();const g={f:S.per,m:minute(),t:Date.now()};S.og.push(g);save();renderGoals();toast("⚽ Tegengoal "+oppName()+" ("+g.m+"')",()=>{S.og.splice(S.og.indexOf(g),1)})};
