@@ -49,6 +49,22 @@ De repository bevat een `Dockerfile` en `Caddyfile`: Railway bouwt daarmee een k
 
 Nieuwe bestanden voor de app moeten ook in de `COPY`-regel van de `Dockerfile` komen.
 
+## Automatische tests
+In de map `tests/` staan tests die de app in een echte browser openen en bedienen zoals een trainer:
+startvenster en datum, opstellen, klok en signaal, doelpunten, wissels en verbeteren, wedstrijden per datum,
+seizoen, delen, printen, werken zonder internet, schermgroottes en oude bewaarde gegevens.
+Ook wordt gecontroleerd of de versienummers in `index.html` en `sw.js` overeenkomen.
+
+GitHub voert ze automatisch uit bij elke push naar `main` en bij elke pull request (tabblad **Actions**).
+Een groen vinkje bij een pull request betekent: alle tests geslaagd. Een rood kruisje: niet samenvoegen voor het opgelost is.
+
+Lokaal uitvoeren:
+```
+npm install
+npx playwright install chromium
+npm test
+```
+
 ## Na een aanpassing
 Verhoog het versienummer achter `style.css?v=` en `app.js?v=` in `index.html` en in `sw.js` (ook de naam van de cache daar), zodat browsers de nieuwe bestanden ophalen in plaats van een oude bewaarde kopie.
 
@@ -59,6 +75,8 @@ Verhoog het versienummer achter `style.css?v=` en `app.js?v=` in `index.html` en
 | `style.css` | opmaak (licht/donker, print) |
 | `app.js` | logica (opstelling, klok, doelpunten) |
 | `logo.jpg` | clublogo |
+| `tests/`, `playwright.config.js`, `package.json` | automatische tests |
+| `.github/workflows/tests.yml` | tests uitvoeren op GitHub |
 | `Dockerfile`, `Caddyfile` | webserver voor Railway |
 | `sw.js` | kopie van de app voor gebruik zonder internet |
 | `manifest.json` | instellingen om de app op het beginscherm te zetten |
