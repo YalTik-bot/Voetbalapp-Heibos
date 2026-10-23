@@ -16,9 +16,12 @@ Eenvoudige webapp om een voetbalwedstrijd van 80 minuten (4 × 20 min) te planne
 - Posities verschuiven: knop ✥, sleep een positie naar een nieuwe plaats; per veld terug naar standaard
 - Selecties per speler: ●●○○ 2/4 toont op welke en hoeveel van de 4 velden een speler staat (rood = minst geselecteerd), met een regel wie het minst geselecteerd is; de keuzelijst zet die spelers bovenaan
 - Speeltijd in één oogopslag: per speler een balk met de gespeelde minuten, rood (speelde het minst), oranje of groen (al veel)
+- Doelpunt: knop „⚽ Goal Heibos” onder de score toont de spelers van het lopende veld (ook „Andere speler…”), of tik op de speler en kies „⚽ Doelpunt”; na elk doelpunt (ook een tegengoal) kan je het 4 seconden lang ongedaan maken; tik op de melding om ze te sluiten
+- Wissel in stappen: knop 🔁 Wissel → wie gaat eruit → wie komt erin (bank, minst gespeeld eerst), met ongedaan maken; tijdens de wedstrijd opent een tik op een speler een keuzemenu (Doelpunt, Wisselen, Verkeerde speler ingegeven, Van plaats wisselen)
 - Speler aanpassen: keuzelijst met eerst de bank, dan wie al op het veld staat (wisselen van plaats, niemand valt weg); tijdens de wedstrijd kies je 🔁 Wissel of ✏️ Verbeteren (fout ingegeven: minuten gaan naar de juiste speler, geen wissel in het verloop)
 - Wissels tijdens een periode: een speler vervangen op het lopende veld wordt met de minuut in het wedstrijdverloop gezet
 - Seizoensoverzicht (📊): uitslagen, gewonnen/gelijk/verloren, doelsaldo, topschutters en per speler wedstrijden, minuten, doelpunten en posities
+- Start/pauze: korte trilling (Android) en tikje, klokbalk groen „● Loopt” of oranje „⏸ Gepauzeerd”, de knop die niet kan is grijs, korte melding
 - Signaal: 2 minuten voor het einde van een veld een piep en trilling, op het einde 3 piepen
 - Werkt zonder internet nadat de app één keer geopend is (service worker `sw.js`)
 - Velden met de keeper onderaan: de ploeg speelt naar boven, zodat links en rechts kloppen met wat de spelers zien
