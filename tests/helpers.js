@@ -6,6 +6,8 @@ async function freshApp(page, { date = "", opp = "", fmt = 8, time } = {}) {
   if (time) await page.clock.install({ time: new Date(time) });
   else await page.clock.install();
   page.on("dialog", (d) => d.accept()); // bevestigingsvragen automatisch met "ja" beantwoorden
+  // fouten van de app zelf zichtbaar maken in het testlogboek
+  page.on("pageerror", (e) => console.log("APP-FOUT:", e.message, "|", (e.stack || "").split("\n").slice(0, 3).join(" « ")));
   await page.goto("/index.html");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
