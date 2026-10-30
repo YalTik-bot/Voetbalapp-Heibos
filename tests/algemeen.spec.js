@@ -17,7 +17,8 @@ test("opstelling delen met een andere trainer", async ({ page, browser }) => {
   expect(await other.evaluate(() => [S.opp, S.date, S.names[S.pl[0][0]]])).toEqual(["KFC Essen", "2026-10-24", "Keeper 1"]);
 });
 
-test("printen: 4 velden op pagina 1, bank op pagina 2, altijd wit", async ({ page }) => {
+test("printen: 4 velden op pagina 1, bank op pagina 2, altijd wit", async ({ page, browserName }) => {
+  test.skip(browserName !== "chromium", "PDF maken kan alleen in Chromium");
   await freshApp(page, { opp: "KFC Essen" });
   await setLineup(page, LINEUP8);
   await page.click("#th"); // donkere modus

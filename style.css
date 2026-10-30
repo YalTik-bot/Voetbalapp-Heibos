@@ -58,7 +58,8 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
 .pg{font-size:13px;color:var(--mut);margin-top:6px}.pi:disabled{opacity:.6}
 #pick[open]{display:flex;flex-direction:column;overflow:hidden}
 #pact{display:flex;flex-direction:column;gap:6px;padding:10px 12px 8px;border-bottom:1px solid var(--bd);flex:none}
-#plist{outline:0;display:flex;flex-direction:column;gap:6px;padding:10px 12px;overflow:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch}
+/* Hoogte volgt de inhoud (flex-basis auto); flex:1 maakte de lijst in Safari 0 px hoog */
+#plist{outline:0;display:flex;flex-direction:column;gap:6px;padding:10px 12px;overflow:auto;flex:0 1 auto;min-height:0;max-height:70vh;-webkit-overflow-scrolling:touch}
 .pi{display:flex;align-items:center;gap:10px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);text-align:left;padding:6px 10px}
 .pi span{flex:1}.pi small{font-size:12px}.pi.cur{border:2px solid var(--pu)}.pi.o{background:#6f6880;color:#fff;justify-content:center}
 #match{padding:8px 10px}
@@ -66,7 +67,7 @@ dialog::backdrop{background:rgba(0,0,0,.5)}
 .sb .tm{flex:1;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sb .tm:first-child{text-align:right}
 #score{font-size:30px;font-variant-numeric:tabular-nums;background:var(--bg);border-radius:8px;padding:2px 12px;white-space:nowrap}
 .gl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.gl button{min-height:46px;font-size:15px;font-weight:700}
-#glist{padding:12px;display:flex;flex-direction:column;gap:10px;overflow:auto}
+#glist{padding:12px;display:flex;flex-direction:column;gap:10px;overflow:auto;flex:0 1 auto;min-height:0;max-height:75vh}
 .gg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .gs{display:flex;align-items:center;gap:8px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);min-height:52px;padding:6px 10px;text-align:left;font-size:15px;font-weight:600}
 .gs span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.gs small{display:block;font-size:12px;font-weight:400;color:var(--mut)}.gs small.pm.low{color:var(--red)}.gs small.pm.mid{color:#d98c00}.gs small.pm.high{color:var(--gr)}

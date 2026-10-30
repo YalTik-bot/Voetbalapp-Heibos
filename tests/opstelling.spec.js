@@ -73,3 +73,25 @@ test("posities verschuiven door te slepen en terug naar standaard", async ({ pag
   await page.click('.fw.vis [data-rxy="0"]');
   expect(await state(page, () => S.xy[8][0][7])).toBeUndefined();
 });
+
+// Regressie: in Safari was de lijst in het spelersvenster 0 px hoog (leeg venster)
+test("spelerslijst bij een lege plaats is zichtbaar en tikbaar", async ({ page }) => {
+  await freshApp(page);
+  await setLineup(page, [[14, 0, 1, null, null, null, null, null], ...Array(3).fill(Array(8).fill(null))]);
+  await tapSlot(page, 7);
+  const list = page.locator("#plist");
+  await expect(list).toBeVisible();
+  expect((await list.boundingBox()).height).toBeGreaterThan(200);
+  const first = page.locator("#plist .pi").first();
+  await expect(first).toBeInViewport();
+  await first.click();
+  expect(await state(page, () => S.pl[0][7])).not.toBeNull();
+});
+
+test("venster Goal Heibos en wisselstappen tonen hun knoppen", async ({ page }) => {
+  await freshApp(page);
+  await setLineup(page, LINEUP8);
+  await page.click("#ug");
+  expect((await page.locator("#glist").boundingBox()).height).toBeGreaterThan(200);
+  await expect(page.locator("#glist .gs").first()).toBeInViewport();
+});

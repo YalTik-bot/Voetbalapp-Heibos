@@ -50,7 +50,7 @@ De repository bevat een `Dockerfile` en `Caddyfile`: Railway bouwt daarmee een k
 Nieuwe bestanden voor de app moeten ook in de `COPY`-regel van de `Dockerfile` komen.
 
 ## Automatische tests
-In de map `tests/` staan tests die de app in een echte browser openen en bedienen zoals een trainer:
+In de map `tests/` staan tests die de app in een echte browser (Chrome én Safari/WebKit) openen en bedienen zoals een trainer:
 startvenster en datum, opstellen, klok en signaal, doelpunten, wissels en verbeteren, wedstrijden per datum,
 seizoen, delen, printen, werken zonder internet, schermgroottes en oude bewaarde gegevens.
 Ook wordt gecontroleerd of de versienummers in `index.html` en `sw.js` overeenkomen.

@@ -15,8 +15,12 @@ module.exports = defineConfig({
     viewport: { width: 390, height: 844 },
     isMobile: true,
     hasTouch: true,
-    browserName: "chromium",
   },
+  // Chrome (Android/pc) en Safari (iPhone): beide motoren testen, ze tonen soms verschillend
+  projects: [
+    { name: "chrome", use: { browserName: "chromium" } },
+    { name: "safari", use: { browserName: "webkit" } },
+  ],
   // Een kleine webserver, nodig voor o.a. het werken zonder internet (service worker)
   webServer: {
     command: "python3 -m http.server 4173 --bind 127.0.0.1",
