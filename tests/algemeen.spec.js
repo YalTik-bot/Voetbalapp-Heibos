@@ -10,11 +10,31 @@ test("opstelling delen met een andere trainer", async ({ page, browser }) => {
   const shared = await state(page, () => window._shared);
   expect(shared.text).toContain("tegen KFC Essen");
 
-  const other = await (await browser.newContext()).newPage();
-  other.on("dialog", (d) => d.accept());
+  // Ontvanger in een ingebouwde browser (WhatsApp/Messenger): confirm() en alert() werken daar niet
+  const ctx = await browser.newContext();
+  await ctx.addInitScript(() => { window.confirm = () => false; window.alert = () => {}; });
+  const other = await ctx.newPage();
   await other.goto(shared.url);
   await expect(other.locator("#mdlg")).toBeHidden();
+  await expect(other.locator("#shdlg")).toBeVisible();
+  await expect(other.locator("#shtxt")).toContainText("tegen KFC Essen");
+  await expect(other.locator("#shtxt")).toContainText("Keeper 1");
+  await other.click("#shyes");
   expect(await other.evaluate(() => [S.opp, S.date, S.names[S.pl[0][0]]])).toEqual(["KFC Essen", "2026-10-24", "Keeper 1"]);
+  await expect(other.locator('.fw.vis .slot[data-s="0"] .lbl').first()).toHaveText("Keeper 1");
+
+  // Niet overnemen laat de eigen (lege) opstelling staan
+  const third = await (await browser.newContext()).newPage();
+  await third.goto(shared.url);
+  await third.click("#shno");
+  expect(await third.evaluate(() => S.pl[0].filter((x) => x != null).length)).toBe(0);
+
+  // Kapotte link: duidelijke melding, niets veranderd
+  const fourth = await (await browser.newContext()).newPage();
+  await fourth.goto("/index.html#o=YWJj"); // geldige tekens, maar geen opstelling
+  await expect(fourth.locator("#shdlg")).toBeVisible();
+  await expect(fourth.locator("#shtxt")).toContainText("kan niet geopend worden");
+  await expect(fourth.locator("#shyes")).toBeHidden();
 });
 
 test("printen: 4 velden op pagina 1, bank op pagina 2, altijd wit", async ({ page }) => {

@@ -337,14 +337,22 @@ function loadShared(){
  let d;try{d=JSON.parse(unb64(m[1]))}catch(e){}
  const n=d&&d.f==11?11:8;
  const ok=d&&Array.isArray(d.n)&&d.n.length==N&&Array.isArray(d.p)&&d.p.length==4&&d.p.every(f=>Array.isArray(f)&&f.length==n&&f.every(i=>i===null||Number.isInteger(i)&&i>=0&&i<N));
- if(!ok){alert("Deze gedeelde opstelling kan niet geopend worden.");return true}
- if(!confirm("Gedeelde opstelling overnemen"+(d.o?" (tegen "+d.o+")":"")+"? Je huidige namen en opstelling worden vervangen (klok, minuten en doelpunten blijven)."))return true;
+ // Eigen venster i.p.v. confirm(): de ingebouwde browser van WhatsApp/Messenger toont confirm() vaak niet en antwoordt dan "nee"
+ if(!ok){$("shtxt").textContent="Deze gedeelde opstelling kan niet geopend worden. Vraag de andere trainer om ze opnieuw te delen.";$("shyes").hidden=true;$("shno").textContent="Sluiten";$("shdlg").showModal();return true}
+ const cnt=d.p[0].filter(x=>x!=null).length;
+ $("shtxt").textContent=(d.o?"Opstelling tegen "+d.o:"Opstelling")+(/^\d{4}-\d\d-\d\d$/.test(d.d||"")?" op "+shortDate(d.d):"")+" · "+n+" spelers"+(cnt?" · veld 1: "+d.p[0].filter(x=>x!=null).map(i=>String(d.n[i]).slice(0,20)).join(", "):"")+".\n\nJe huidige namen en opstelling worden vervangen. Klok, minuten en doelpunten blijven.";
+ $("shyes").hidden=false;$("shno").textContent="Niet overnemen";sharedData={d,n};$("shdlg").showModal();return true;
+}
+let sharedData=null;
+function applyShared(){const{d,n}=sharedData;sharedData=null;
  S.names=d.n.map(x=>String(x).slice(0,20)||"Speler");setFmt(n);S.pl=d.p;
  const xy=Array.isArray(d.xy)&&d.xy.length==4?d.xy.map(o=>{const r={};if(o&&typeof o=="object")for(const k in o){const v=o[k];if(+k>=0&&+k<n&&Array.isArray(v)&&v.length==2&&v.every(Number.isFinite))r[k]=[clamp(v[0],6,94),clamp(v[1],5,95)]}return r}):null;
  if(xy){if(!d.fl)xy.forEach(o=>{for(const s in o)o[s][1]=100-o[s][1]});S.xy[n]=xy}
  if(typeof d.o=="string")S.opp=d.o.slice(0,30);if(/^\d{4}-\d\d-\d\d$/.test(d.d||""))S.date=d.d;
- save();return true;
+ save();render();toast("✓ Gedeelde opstelling overgenomen",null,2500);
 }
+$("shyes").onclick=()=>{$("shdlg").close();if(sharedData)applyShared()};
+$("shno").onclick=()=>{sharedData=null;$("shdlg").close()};
 // Werken zonder internet: de service worker bewaart een kopie van de app (alleen op de echte website)
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
 const shared=loadShared();
