@@ -29,7 +29,8 @@ test("printen: 4 velden op pagina 1, bank op pagina 2, altijd wit", async ({ pag
   expect(pages).toBe(2);
 });
 
-test("werkt zonder internet nadat de app één keer geopend is", async ({ page, context }) => {
+test("werkt zonder internet nadat de app één keer geopend is", async ({ page, context, browserName }) => {
+  test.skip(browserName !== "chromium", "Offline herladen met service worker wordt in WebKit door Playwright niet ondersteund");
   await page.goto("/index.html");
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.click("#fok");

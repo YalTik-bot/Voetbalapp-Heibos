@@ -32,7 +32,8 @@ async function tapSlot(page, s) {
   await page.evaluate(() => scrollTo(0, 0));
   const slot = page.locator(`.fw.vis .slot[data-s="${s}"]`);
   await slot.scrollIntoViewIfNeeded();
-  await slot.tap();
+  // click i.p.v. tap: Safari (WebKit) op de Linux-testmachine maakt van een gesimuleerde tik geen klik
+  await slot.click();
 }
 
 // Klok laten lopen: start, dan een aantal seconden vooruit
