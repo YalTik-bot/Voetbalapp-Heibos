@@ -245,14 +245,28 @@ $("rs").onclick=()=>{if(confirm("Tijd, spelersminuten en doelpunten (ook van de 
 // Printen: in de ingebouwde browser van WhatsApp/Messenger/Facebook/Instagram doet window.print() vaak niets.
 // Opent er geen afdrukvenster, dan leggen we uit hoe je de app in Safari/Chrome opent.
 let printing=false;addEventListener("beforeprint",()=>printing=true);
-$("pr").onclick=()=>{printing=false;const t=Date.now();try{window.print()}catch(e){}
+$("pr").onclick=()=>{if(isIOS&&standalone())return toSafari();printing=false;const t=Date.now();try{window.print()}catch(e){}
  const blocked=Date.now()-t>300; // Chrome/Android: print() wacht tot het afdrukvenster dicht is
  setTimeout(()=>{if(!printing&&!blocked)printHelp()},1200)};
-const appLink=()=>location.origin+location.pathname;
-function printHelp(){$("prlink").textContent=appLink();$("prcopy").textContent="🔗 Link kopiëren";$("prdlg").showModal()}
-$("prcopy").onclick=()=>{const done=()=>$("prcopy").textContent="✓ Gekopieerd";
- try{navigator.clipboard.writeText(appLink()).then(done,()=>{})}catch(e){}};
+// Vanaf het beginscherm-icoon (iPhone) kan Apple niet printen; in Safari wel.
+// De link bevat de opstelling, want Safari en het app-icoon bewaren elk hun eigen gegevens.
+const standalone=()=>navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;
+const isIOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform=="MacIntel"&&navigator.maxTouchPoints>1);
+window.openExternal=u=>{location.href=u}; // apart, zodat de tests het kunnen opvangen
+// iPhone: open de app met de opstelling meteen in Safari (x-safari-https://), daar volgt "Overnemen en printen".
+// Gaat Safari niet open (oudere iOS), dan verschijnt de uitleg met de link om te kopiëren.
+function toSafari(){let left=false;const vis=()=>{if(document.visibilityState=="hidden")left=true};
+ document.addEventListener("visibilitychange",vis);openExternal("x-safari-"+shareUrl(true));
+ setTimeout(()=>{document.removeEventListener("visibilitychange",vis);if(!left)printHelp()},1500)}
+function printHelp(){const app=standalone();
+ $("prt").textContent=app?"🖨 Printen kan niet vanuit het app-icoon":"🖨 Printen lukt hier niet";
+ $("prwhy").textContent=app?"Op iPhone laat Apple niet toe om te printen vanuit een app op het beginscherm. In Safari lukt het wel."
+  :"Je hebt de app waarschijnlijk geopend vanuit WhatsApp, Messenger of Facebook. Die laten niet toe om te printen.";
+ $("prsaf").hidden=!isIOS||app;$("prlink").hidden=true;$("prcopy").textContent="🔗 Link met opstelling kopiëren";$("prdlg").showModal()}
+$("prcopy").onclick=()=>{const url=shareUrl(true),show=()=>{$("prlink").textContent=url;$("prlink").hidden=false};
+ try{navigator.clipboard.writeText(url).then(()=>$("prcopy").textContent="✓ Gekopieerd",show)}catch(e){show()}};
 $("prclose").onclick=()=>$("prdlg").close();
+$("prsaf").onclick=()=>{$("prdlg").close();toSafari()};
 // Doelpunt van de tegenstander, op de minuut van de lopende klok
 // Doelpunt Heibos: kies de scorer uit wie nu op het lopende veld staat (grote knoppen, zonder scrollen)
 function scoreGoal(p){if(run)tick();const g={p,m:minute(),t:Date.now()};S.goals.push(g);save();renderGoals();
@@ -336,8 +350,9 @@ dark.addEventListener("change",theme);theme();
 // Opstelling delen via een link: namen, spelvorm, posities en wedstrijd zitten gecodeerd achter #o=
 const b64=s=>btoa(String.fromCharCode(...new TextEncoder().encode(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 const unb64=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0)));
+const shareUrl=pr=>location.href.split("#")[0]+"#o="+b64(JSON.stringify({n:S.names,p:S.pl,f:S.fmt,xy:S.xy[S.fmt]||null,fl:1,o:S.opp,d:S.date,...(pr?{pr:1}:{})}));
 $("sh").onclick=async()=>{
- const url=location.href.split("#")[0]+"#o="+b64(JSON.stringify({n:S.names,p:S.pl,f:S.fmt,xy:S.xy[S.fmt]||null,fl:1,o:S.opp,d:S.date}));
+ const url=shareUrl();
  try{if(navigator.share){await navigator.share({title:"Opstelling K. Heibos",text:"Opstelling K. Heibos S.V. Kalmthout"+(S.opp?" tegen "+S.opp:"")+" – open de link om ze over te nemen:",url});return}}catch(e){if(e.name=="AbortError")return}
  try{await navigator.clipboard.writeText(url);alert("Link gekopieerd. Plak hem in WhatsApp, mail, …")}catch(e){prompt("Kopieer deze link:",url)}
 };
@@ -351,7 +366,7 @@ function loadShared(){
  if(!ok){$("shtxt").textContent="Deze gedeelde opstelling kan niet geopend worden. Vraag de andere trainer om ze opnieuw te delen.";$("shyes").hidden=true;$("shno").textContent="Sluiten";$("shdlg").showModal();return true}
  const cnt=d.p[0].filter(x=>x!=null).length;
  $("shtxt").textContent=(d.o?"Opstelling tegen "+d.o:"Opstelling")+(/^\d{4}-\d\d-\d\d$/.test(d.d||"")?" op "+shortDate(d.d):"")+" · "+n+" spelers"+(cnt?" · veld 1: "+d.p[0].filter(x=>x!=null).map(i=>String(d.n[i]).slice(0,20)).join(", "):"")+".\n\nJe huidige namen en opstelling worden vervangen. Klok, minuten en doelpunten blijven.";
- $("shyes").hidden=false;$("shno").textContent="Niet overnemen";sharedData={d,n};$("shdlg").showModal();return true;
+ $("shyes").hidden=false;$("shyes").textContent=d.pr?"Overnemen en printen":"Overnemen";$("shno").textContent="Niet overnemen";sharedData={d,n};$("shdlg").showModal();return true;
 }
 let sharedData=null;
 function applyShared(){const{d,n}=sharedData;sharedData=null;
@@ -361,7 +376,7 @@ function applyShared(){const{d,n}=sharedData;sharedData=null;
  if(typeof d.o=="string")S.opp=d.o.slice(0,30);if(/^\d{4}-\d\d-\d\d$/.test(d.d||""))S.date=d.d;
  save();render();toast("✓ Gedeelde opstelling overgenomen",null,2500);
 }
-$("shyes").onclick=()=>{$("shdlg").close();if(sharedData)applyShared()};
+$("shyes").onclick=()=>{$("shdlg").close();if(!sharedData)return;const pr=sharedData.d.pr;applyShared();if(pr)window.print()};
 $("shno").onclick=()=>{sharedData=null;$("shdlg").close()};
 // Werken zonder internet: de service worker bewaart een kopie van de app (alleen op de echte website)
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});

@@ -55,7 +55,18 @@ test("printknop: uitleg als het afdrukvenster niet opent (WhatsApp/Messenger)", 
   await page.click("#pr");
   await page.clock.runFor(1500);
   await expect(page.locator("#prdlg")).toBeVisible();
-  await expect(page.locator("#prlink")).toHaveText(/\/index\.html$/);
+  await expect(page.locator("#prt")).toContainText("lukt hier niet");
+  await page.click("#prclose");
+
+  // Vanaf het beginscherm-icoon op iPhone: eigen uitleg, en de gekopieerde link bevat de opstelling
+  await page.evaluate(() => { Object.defineProperty(navigator, "standalone", { value: true }); navigator.clipboard.writeText = async (t) => (window._copied = t); });
+  await page.click("#pr");
+  await page.clock.runFor(1500);
+  await expect(page.locator("#prt")).toContainText("app-icoon");
+  await expect(page.locator("#prwhy")).toContainText("beginscherm");
+  await page.click("#prcopy");
+  await expect(page.locator("#prcopy")).toHaveText("✓ Gekopieerd");
+  expect(await state(page, () => window._copied)).toMatch(/#o=[\w-]+$/);
   await page.click("#prclose");
   await expect(page.locator("#prdlg")).toBeHidden();
 
@@ -64,6 +75,37 @@ test("printknop: uitleg als het afdrukvenster niet opent (WhatsApp/Messenger)", 
   await page.click("#pr");
   await page.clock.runFor(1500);
   await expect(page.locator("#prdlg")).toBeHidden();
+});
+
+test("printknop op iPhone vanaf het beginscherm: opent Safari met de opstelling, daar overnemen en printen", async ({ browser }) => {
+  const ctx = await browser.newContext({ userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148" });
+  await ctx.addInitScript(() => Object.defineProperty(navigator, "standalone", { value: true }));
+  const page = await ctx.newPage();
+  await freshApp(page, { opp: "KFC Essen" });
+  await setLineup(page, LINEUP8);
+  await page.evaluate(() => { window.print = () => (window._printed = true); window.openExternal = (u) => { window._opened = u; Object.defineProperty(document, "visibilityState", { value: "hidden", configurable: true }); document.dispatchEvent(new Event("visibilitychange")); }; });
+  await page.click("#pr");
+  await page.clock.runFor(2000);
+  const url = await state(page, () => window._opened);
+  expect(url).toMatch(/^x-safari-http:\/\/.+#o=[\w-]+$/);
+  expect(await state(page, () => window._printed)).toBeUndefined(); // in de app zelf niet printen
+  await expect(page.locator("#prdlg")).toBeHidden(); // Safari ging open: geen uitleg
+
+  // Safari ging niet open (oudere iOS): uitleg verschijnt toch
+  await page.evaluate(() => { Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true }); window.openExternal = () => {}; });
+  await page.click("#pr");
+  await page.clock.runFor(2000);
+  await expect(page.locator("#prdlg")).toBeVisible();
+  await expect(page.locator("#prsaf")).toBeHidden();
+
+  // In Safari: "Overnemen en printen"
+  const safari = await (await browser.newContext()).newPage();
+  await safari.addInitScript(() => (window.print = () => (window._printed = true)));
+  await safari.goto(url.replace(/^x-safari-/, ""));
+  await expect(safari.locator("#shyes")).toHaveText("Overnemen en printen");
+  await safari.click("#shyes");
+  expect(await safari.evaluate(() => [window._printed, S.opp])).toEqual([true, "KFC Essen"]);
+  await ctx.close();
 });
 
 test("werkt zonder internet nadat de app één keer geopend is", async ({ page, context }) => {
