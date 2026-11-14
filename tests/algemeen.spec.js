@@ -48,6 +48,24 @@ test("printen: 4 velden op pagina 1, bank op pagina 2, altijd wit", async ({ pag
   expect(pages).toBe(2);
 });
 
+test("printknop: uitleg als het afdrukvenster niet opent (WhatsApp/Messenger)", async ({ page }) => {
+  await freshApp(page);
+  // Ingebouwde browser: print() doet niets
+  await page.evaluate(() => (window.print = () => {}));
+  await page.click("#pr");
+  await page.clock.runFor(1500);
+  await expect(page.locator("#prdlg")).toBeVisible();
+  await expect(page.locator("#prlink")).toHaveText(/\/index\.html$/);
+  await page.click("#prclose");
+  await expect(page.locator("#prdlg")).toBeHidden();
+
+  // Gewone browser: afdrukvenster opent (beforeprint) -> geen uitleg
+  await page.evaluate(() => (window.print = () => dispatchEvent(new Event("beforeprint"))));
+  await page.click("#pr");
+  await page.clock.runFor(1500);
+  await expect(page.locator("#prdlg")).toBeHidden();
+});
+
 test("werkt zonder internet nadat de app één keer geopend is", async ({ page, context }) => {
   await page.goto("/index.html");
   await page.evaluate(() => navigator.serviceWorker.ready);
