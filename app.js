@@ -245,28 +245,65 @@ $("rs").onclick=()=>{if(confirm("Tijd, spelersminuten en doelpunten (ook van de 
 // Printen: in de ingebouwde browser van WhatsApp/Messenger/Facebook/Instagram doet window.print() vaak niets.
 // Opent er geen afdrukvenster, dan leggen we uit hoe je de app in Safari/Chrome opent.
 let printing=false;addEventListener("beforeprint",()=>printing=true);
-$("pr").onclick=()=>{if(isIOS&&standalone())return toSafari();printing=false;const t=Date.now();try{window.print()}catch(e){}
+$("pr").onclick=()=>{if(isIOS&&standalone())return sharePrint();printing=false;const t=Date.now();try{window.print()}catch(e){}
  const blocked=Date.now()-t>300; // Chrome/Android: print() wacht tot het afdrukvenster dicht is
  setTimeout(()=>{if(!printing&&!blocked)printHelp()},1200)};
 // Vanaf het beginscherm-icoon (iPhone) kan Apple niet printen; in Safari wel.
 // De link bevat de opstelling, want Safari en het app-icoon bewaren elk hun eigen gegevens.
 const standalone=()=>navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;
 const isIOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform=="MacIntel"&&navigator.maxTouchPoints>1);
-window.openExternal=u=>{location.href=u}; // apart, zodat de tests het kunnen opvangen
-// iPhone: open de app met de opstelling meteen in Safari (x-safari-https://), daar volgt "Overnemen en printen".
-// Gaat Safari niet open (oudere iOS), dan verschijnt de uitleg met de link om te kopiëren.
-function toSafari(){let left=false;const vis=()=>{if(document.visibilityState=="hidden")left=true};
- document.addEventListener("visibilitychange",vis);openExternal("x-safari-"+shareUrl(true));
- setTimeout(()=>{document.removeEventListener("visibilitychange",vis);if(!left)printHelp()},1500)}
+// Afdrukbare versie als 2 A4-afbeeldingen (pagina 1: 4 velden, pagina 2: spelers en verloop), gedeeld via het deelmenu.
+// Werkt ook vanaf het beginscherm-icoon op iPhone: kies daar "Afdrukken" (of bewaar/stuur ze door).
+const KIT=new Path2D("M10 3l-8 6 4 6 3-2v9h16v-9l3 2 4-6-8-6c-1 3-3 4-7 4s-6-1-7-4z");
+const FONT='-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
+function events(){const all=[...S.goals.map(g=>({...g,k:"g"})),...S.og.map(g=>({...g,k:"o"})),...S.subs.map(g=>({...g,k:"s"}))].sort((a,b)=>a.m-b.m||a.t-b.t);
+ let h=0,a=0;const nm=i=>i==null?"–":S.names[i];
+ return all.map(g=>{if(g.k=="s")return[g.m+"'","🔁 "+(g.in!=null?nm(g.in)+" erin":"")+(g.in!=null&&g.out!=null?" voor "+nm(g.out):g.out!=null?nm(g.out)+" eruit":"")+" ("+g.pos+", veld "+(g.f+1)+")",""];
+  g.k=="g"?h++:a++;return[g.m+"'","⚽ "+(g.k=="g"?nm(g.p):oppName()),h+"–"+a]})}
+function printPages(){const W=1240,H=1754,mk=()=>{const c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,W,H);x.textBaseline="middle";return[c,x]};
+ const fit=(x,t,w)=>{if(x.measureText(t).width<=w)return t;while(t.length>1&&x.measureText(t+"…").width>w)t=t.slice(0,-1);return t+"…"};
+ const head=(x,sub)=>{const img=document.querySelector("#logo img");try{if(img&&img.complete&&img.naturalWidth)x.drawImage(img,60,45,110,110)}catch(e){}
+  x.fillStyle="#111";x.font="bold 46px "+FONT;x.fillText("K. Heibos S.V. Kalmthout",195,82);x.font="30px "+FONT;x.fillStyle="#444";x.fillText(fit(x,sub,W-255),195,128)};
+ const sub=[shortDate(S.date),S.opp?"tegen "+S.opp:"",S.goals.length||S.og.length?"stand "+score():"",S.fmt+" spelers"].filter(Boolean).join(" · ");
+ const [c1,x]=mk();head(x,sub);
+ const pw=480,ph=640,xs=[110,650],ys=[230,940];
+ S.pl.forEach((f,fi)=>{const X=xs[fi%2],Y=ys[fi>>1];
+  x.fillStyle="#6a2c91";x.font="bold 30px "+FONT;x.fillText("Veld "+(fi+1),X,Y-26);const wv=x.measureText("Veld "+(fi+1)).width;x.fillStyle="#666";x.font="24px "+FONT;x.fillText(fi*20+"–"+(fi*20+20)+" min",X+wv+14,Y-25);
+  x.save();x.beginPath();x.rect(X,Y,pw,ph);x.clip();for(let i=0;i<8;i++){x.fillStyle=i%2?"#35923f":"#3c9d4a";x.fillRect(X,Y+i*ph/8,pw,ph/8+1)}
+  x.strokeStyle="#fff";x.lineWidth=3;x.strokeRect(X+pw*.25,Y+ph*.84,pw*.5,ph*.16+4);x.beginPath();x.arc(X+pw/2,Y-ph*.18+pw*.18,pw*.18,0,7);x.stroke();x.restore();
+  x.strokeStyle="#fff";x.lineWidth=5;x.strokeRect(X,Y,pw,ph);
+  POS.forEach((p,si)=>{const pi=f[si],[px,py]=at(fi,si),cx=X+pw*px/100,cy=Y+ph*py/100;
+   if(pi==null){x.setLineDash([6,5]);x.strokeStyle="rgba(255,255,255,.8)";x.lineWidth=2;x.beginPath();x.arc(cx,cy-8,18,0,7);x.stroke();x.setLineDash([]);
+    x.font="16px "+FONT;x.fillStyle="rgba(255,255,255,.9)";x.textAlign="center";x.fillText(p[3]||p[0],cx,cy+24);x.textAlign="left";return}
+   x.save();x.translate(cx-22,cy-40);x.scale(44/34,44/34);x.fillStyle=isK(pi)?"#111":"#7b2fa8";x.strokeStyle="#fff";x.lineWidth=1;x.fill(KIT);x.stroke(KIT);
+   x.beginPath();x.roundRect?x.roundRect(9,23,16,9,2):x.rect(9,23,16,9);x.fillStyle=isK(pi)?"#111":"#1f8a3a";x.fill();x.stroke();x.restore();
+   x.font="bold 20px "+FONT;x.textAlign="center";const t=fit(x,S.names[pi],pw*.3),tw=x.measureText(t).width+14;
+   x.fillStyle="rgba(0,0,0,.6)";x.beginPath();x.roundRect?x.roundRect(cx-tw/2,cy+8,tw,28,8):x.rect(cx-tw/2,cy+8,tw,28);x.fill();x.fillStyle="#fff";x.fillText(t,cx,cy+23);x.textAlign="left"})});
+ const [c2,y]=mk();head(y,sub);
+ let Y=215;y.fillStyle="#6a2c91";y.font="bold 32px "+FONT;y.fillText("Spelers",60,Y);Y+=46;
+ y.font="bold 22px "+FONT;y.fillStyle="#666";y.fillText("Naam",60,Y);y.fillText("Opgesteld",560,Y);y.fillText("Speeltijd",900,Y);Y+=12;
+ S.names.forEach((n,i)=>{if(i%2==0){y.fillStyle="#f2edf6";y.fillRect(50,Y,W-100,40)}Y+=20;y.fillStyle="#111";y.font=(isK(i)?"italic ":"")+"26px "+FONT;
+  y.fillText(fit(y,n+(isK(i)?" (keeper)":""),480),60,Y);y.fillText(dots(i)+"  "+nf(i)+"/4",560,Y);y.fillText(fmt(S.sec[i]),900,Y);Y+=20});
+ Y+=50;y.fillStyle="#6a2c91";y.font="bold 32px "+FONT;y.fillText("Wedstrijdverloop",60,Y);Y+=44;
+ const ev=events(),max=Math.floor((H-60-Y)/38);y.font="24px "+FONT;y.fillStyle="#111";
+ if(!ev.length)y.fillText("Nog geen doelpunten of wissels.",60,Y);
+ ev.slice(0,ev.length>max?max-1:max).forEach(r=>{y.fillText(r[0],60,Y);y.fillText(fit(y,r[1],820),140,Y);y.fillText(r[2],1000,Y);Y+=38});
+ if(ev.length>max)y.fillText("… en nog "+(ev.length-max+1)+" meer",140,Y);
+ return[c1,c2]}
+const toFile=(c,name)=>{const d=atob(c.toDataURL("image/png").split(",")[1]),u=new Uint8Array(d.length);for(let i=0;i<d.length;i++)u[i]=d.charCodeAt(i);return new File([u],name,{type:"image/png"})};
+// Alles synchroon tot navigator.share: Safari vraagt dat delen rechtstreeks uit de tik volgt
+function sharePrint(){let files;try{const dt=S.date||today();files=printPages().map((c,i)=>toFile(c,"Opstelling-"+dt+"-"+(i+1)+".png"))}catch(e){return printHelp()}
+ if(!navigator.canShare||!navigator.canShare({files}))return printHelp();
+ navigator.share({files,title:"Opstelling K. Heibos"}).catch(e=>{if(e.name!="AbortError")printHelp()})}
 function printHelp(){const app=standalone();
  $("prt").textContent=app?"🖨 Printen kan niet vanuit het app-icoon":"🖨 Printen lukt hier niet";
- $("prwhy").textContent=app?"Op iPhone laat Apple niet toe om te printen vanuit een app op het beginscherm. In Safari lukt het wel."
+ $("prwhy").textContent=app?"Op iPhone laat Apple niet toe om rechtstreeks te printen vanuit een app op het beginscherm. In Safari lukt het wel."
   :"Je hebt de app waarschijnlijk geopend vanuit WhatsApp, Messenger of Facebook. Die laten niet toe om te printen.";
- $("prsaf").hidden=!isIOS||app;$("prlink").hidden=true;$("prcopy").textContent="🔗 Link met opstelling kopiëren";$("prdlg").showModal()}
+ $("prsaf").hidden=!navigator.canShare;$("prlink").hidden=true;$("prcopy").textContent="🔗 Link met opstelling kopiëren";$("prdlg").showModal()}
 $("prcopy").onclick=()=>{const url=shareUrl(true),show=()=>{$("prlink").textContent=url;$("prlink").hidden=false};
  try{navigator.clipboard.writeText(url).then(()=>$("prcopy").textContent="✓ Gekopieerd",show)}catch(e){show()}};
 $("prclose").onclick=()=>$("prdlg").close();
-$("prsaf").onclick=()=>{$("prdlg").close();toSafari()};
+$("prsaf").onclick=()=>{$("prdlg").close();sharePrint()};
 // Doelpunt van de tegenstander, op de minuut van de lopende klok
 // Doelpunt Heibos: kies de scorer uit wie nu op het lopende veld staat (grote knoppen, zonder scrollen)
 function scoreGoal(p){if(run)tick();const g={p,m:minute(),t:Date.now()};S.goals.push(g);save();renderGoals();

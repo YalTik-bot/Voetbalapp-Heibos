@@ -77,31 +77,38 @@ test("printknop: uitleg als het afdrukvenster niet opent (WhatsApp/Messenger)", 
   await expect(page.locator("#prdlg")).toBeHidden();
 });
 
-test("printknop op iPhone vanaf het beginscherm: opent Safari met de opstelling, daar overnemen en printen", async ({ browser }) => {
+test("printknop op iPhone vanaf het beginscherm: afdrukbare versie via het deelmenu", async ({ browser }) => {
   const ctx = await browser.newContext({ userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148" });
   await ctx.addInitScript(() => Object.defineProperty(navigator, "standalone", { value: true }));
   const page = await ctx.newPage();
-  await freshApp(page, { opp: "KFC Essen" });
+  await freshApp(page, { date: "15/11/2026", opp: "KFC Essen" });
   await setLineup(page, LINEUP8);
-  await page.evaluate(() => { window.print = () => (window._printed = true); window.openExternal = (u) => { window._opened = u; Object.defineProperty(document, "visibilityState", { value: "hidden", configurable: true }); document.dispatchEvent(new Event("visibilitychange")); }; });
+  await page.evaluate(() => {
+    window.print = () => (window._printed = true);
+    navigator.canShare = (d) => !!(d.files && d.files.length);
+    navigator.share = async (d) => { window._shared = await Promise.all(d.files.map(async (f) => ({ name: f.name, type: f.type, size: f.size, url: await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(f); }) }))); };
+  });
   await page.click("#pr");
-  await page.clock.runFor(2000);
-  const url = await state(page, () => window._opened);
-  expect(url).toMatch(/^x-safari-http:\/\/.+#o=[\w-]+$/);
+  await expect.poll(() => state(page, () => window._shared && window._shared.length)).toBe(2);
+  const files = await state(page, () => window._shared);
+  expect(files.map((f) => [f.name, f.type])).toEqual([["Opstelling-2026-11-15-1.png", "image/png"], ["Opstelling-2026-11-15-2.png", "image/png"]]);
+  expect(files[0].size).toBeGreaterThan(20000);
   expect(await state(page, () => window._printed)).toBeUndefined(); // in de app zelf niet printen
-  await expect(page.locator("#prdlg")).toBeHidden(); // Safari ging open: geen uitleg
+  await expect(page.locator("#prdlg")).toBeHidden();
+  if (process.env.SHOT) require("fs").writeFileSync(process.env.SHOT, JSON.stringify(files.map((f) => f.url)));
 
-  // Safari ging niet open (oudere iOS): uitleg verschijnt toch
-  await page.evaluate(() => { Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true }); window.openExternal = () => {}; });
+  // Delen van bestanden niet mogelijk: uitleg met link
+  await page.evaluate(() => (navigator.canShare = () => false));
   await page.click("#pr");
-  await page.clock.runFor(2000);
   await expect(page.locator("#prdlg")).toBeVisible();
-  await expect(page.locator("#prsaf")).toBeHidden();
+  await expect(page.locator("#prt")).toContainText("app-icoon");
+  await page.click("#prclose");
 
-  // In Safari: "Overnemen en printen"
+  // Link uit de uitleg in Safari: "Overnemen en printen"
+  const url = await state(page, () => shareUrl(true));
   const safari = await (await browser.newContext()).newPage();
   await safari.addInitScript(() => (window.print = () => (window._printed = true)));
-  await safari.goto(url.replace(/^x-safari-/, ""));
+  await safari.goto(url);
   await expect(safari.locator("#shyes")).toHaveText("Overnemen en printen");
   await safari.click("#shyes");
   expect(await safari.evaluate(() => [window._printed, S.opp])).toEqual([true, "KFC Essen"]);
