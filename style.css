@@ -118,7 +118,7 @@ tr.opp td{color:var(--mut)}
 .lg{display:inline-block;padding:0 5px;border-radius:4px;color:#fff;font-size:11px}.lg.low{background:var(--red)}.lg.mid{background:#d98c00}.lg.high{background:var(--gr)}
 tr.sub td{font-size:13px}
 /* Seizoensoverzicht */
-dialog.wide{width:min(720px,96vw)}#sbody{padding:12px;overflow:auto}#sbody h3{font-size:15px;margin:16px 0 6px}
+dialog.wide{width:min(720px,96vw)}#imgdlg[open]{display:flex;flex-direction:column;max-height:92vh}#imgbody{padding:12px;overflow:auto;-webkit-overflow-scrolling:touch}#imgs img{display:block;width:100%;height:auto;border:1px solid var(--bd);border-radius:6px;margin-bottom:10px;-webkit-touch-callout:default}#sbody{padding:12px;overflow:auto}#sbody h3{font-size:15px;margin:16px 0 6px}
 .sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px}.sum div{background:var(--bg);border-radius:10px;padding:8px;text-align:center}
 .sum b{display:block;font-size:22px;font-variant-numeric:tabular-nums}.sum b.w{color:var(--gr)}.sum b.v{color:var(--red)}
 .rl,.ts{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}.rl li,.ts li{display:flex;align-items:center;gap:8px;font-size:14px}.rl li span:nth-child(2){flex:1;min-width:0}
