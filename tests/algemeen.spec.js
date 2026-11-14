@@ -55,7 +55,18 @@ test("printknop: uitleg als het afdrukvenster niet opent (WhatsApp/Messenger)", 
   await page.click("#pr");
   await page.clock.runFor(1500);
   await expect(page.locator("#prdlg")).toBeVisible();
-  await expect(page.locator("#prlink")).toHaveText(/\/index\.html$/);
+  await expect(page.locator("#prt")).toContainText("lukt hier niet");
+  await page.click("#prclose");
+
+  // Vanaf het beginscherm-icoon op iPhone: eigen uitleg, en de gekopieerde link bevat de opstelling
+  await page.evaluate(() => { Object.defineProperty(navigator, "standalone", { value: true }); navigator.clipboard.writeText = async (t) => (window._copied = t); });
+  await page.click("#pr");
+  await page.clock.runFor(1500);
+  await expect(page.locator("#prt")).toContainText("app-icoon");
+  await expect(page.locator("#prwhy")).toContainText("beginscherm");
+  await page.click("#prcopy");
+  await expect(page.locator("#prcopy")).toHaveText("✓ Gekopieerd");
+  expect(await state(page, () => window._copied)).toMatch(/#o=[\w-]+$/);
   await page.click("#prclose");
   await expect(page.locator("#prdlg")).toBeHidden();
 

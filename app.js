@@ -248,10 +248,16 @@ let printing=false;addEventListener("beforeprint",()=>printing=true);
 $("pr").onclick=()=>{printing=false;const t=Date.now();try{window.print()}catch(e){}
  const blocked=Date.now()-t>300; // Chrome/Android: print() wacht tot het afdrukvenster dicht is
  setTimeout(()=>{if(!printing&&!blocked)printHelp()},1200)};
-const appLink=()=>location.origin+location.pathname;
-function printHelp(){$("prlink").textContent=appLink();$("prcopy").textContent="🔗 Link kopiëren";$("prdlg").showModal()}
-$("prcopy").onclick=()=>{const done=()=>$("prcopy").textContent="✓ Gekopieerd";
- try{navigator.clipboard.writeText(appLink()).then(done,()=>{})}catch(e){}};
+// Vanaf het beginscherm-icoon (iPhone) kan Apple niet printen; in Safari wel.
+// De link bevat de opstelling, want Safari en het app-icoon bewaren elk hun eigen gegevens.
+const standalone=()=>navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;
+function printHelp(){const app=standalone();
+ $("prt").textContent=app?"🖨 Printen kan niet vanuit het app-icoon":"🖨 Printen lukt hier niet";
+ $("prwhy").textContent=app?"Op iPhone laat Apple niet toe om te printen vanuit een app op het beginscherm. In Safari lukt het wel."
+  :"Je hebt de app waarschijnlijk geopend vanuit WhatsApp, Messenger of Facebook. Die laten niet toe om te printen.";
+ $("prlink").hidden=true;$("prcopy").textContent="🔗 Link met opstelling kopiëren";$("prdlg").showModal()}
+$("prcopy").onclick=()=>{const url=shareUrl(),show=()=>{$("prlink").textContent=url;$("prlink").hidden=false};
+ try{navigator.clipboard.writeText(url).then(()=>$("prcopy").textContent="✓ Gekopieerd",show)}catch(e){show()}};
 $("prclose").onclick=()=>$("prdlg").close();
 // Doelpunt van de tegenstander, op de minuut van de lopende klok
 // Doelpunt Heibos: kies de scorer uit wie nu op het lopende veld staat (grote knoppen, zonder scrollen)
@@ -336,8 +342,9 @@ dark.addEventListener("change",theme);theme();
 // Opstelling delen via een link: namen, spelvorm, posities en wedstrijd zitten gecodeerd achter #o=
 const b64=s=>btoa(String.fromCharCode(...new TextEncoder().encode(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 const unb64=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0)));
+const shareUrl=()=>location.href.split("#")[0]+"#o="+b64(JSON.stringify({n:S.names,p:S.pl,f:S.fmt,xy:S.xy[S.fmt]||null,fl:1,o:S.opp,d:S.date}));
 $("sh").onclick=async()=>{
- const url=location.href.split("#")[0]+"#o="+b64(JSON.stringify({n:S.names,p:S.pl,f:S.fmt,xy:S.xy[S.fmt]||null,fl:1,o:S.opp,d:S.date}));
+ const url=shareUrl();
  try{if(navigator.share){await navigator.share({title:"Opstelling K. Heibos",text:"Opstelling K. Heibos S.V. Kalmthout"+(S.opp?" tegen "+S.opp:"")+" – open de link om ze over te nemen:",url});return}}catch(e){if(e.name=="AbortError")return}
  try{await navigator.clipboard.writeText(url);alert("Link gekopieerd. Plak hem in WhatsApp, mail, …")}catch(e){prompt("Kopieer deze link:",url)}
 };
