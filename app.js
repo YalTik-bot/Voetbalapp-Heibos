@@ -292,9 +292,13 @@ function printPages(){const W=1240,H=1754,mk=()=>{const c=document.createElement
  return[c1,c2]}
 const toFile=(c,name)=>{const d=atob(c.toDataURL("image/png").split(",")[1]),u=new Uint8Array(d.length);for(let i=0;i<d.length;i++)u[i]=d.charCodeAt(i);return new File([u],name,{type:"image/png"})};
 // Alles synchroon tot navigator.share: Safari vraagt dat delen rechtstreeks uit de tik volgt
-function sharePrint(){let files;try{const dt=S.date||today();files=printPages().map((c,i)=>toFile(c,"Opstelling-"+dt+"-"+(i+1)+".png"))}catch(e){return printHelp()}
- if(!navigator.canShare||!navigator.canShare({files}))return printHelp();
- navigator.share({files,title:"Opstelling K. Heibos"}).catch(e=>{if(e.name!="AbortError")printHelp()})}
+function sharePrint(){let pages,files;try{const dt=S.date||today();pages=printPages();files=pages.map((c,i)=>toFile(c,"Opstelling-"+dt+"-"+(i+1)+".png"))}catch(e){return printHelp()}
+ if(!navigator.canShare||!navigator.canShare({files}))return showPages(pages);
+ navigator.share({files,title:"Opstelling K. Heibos"}).catch(e=>{if(e.name!="AbortError")showPages(pages)})}
+// Reserve (ook oudere toestellen): de pagina's als afbeeldingen tonen; vinger erop houden → Bewaar/Deel → Afdrukken
+function showPages(pages){$("imgs").innerHTML=pages.map((c,i)=>`<img src="${c.toDataURL("image/png")}" alt="Pagina ${i+1}">`).join("");$("imgdlg").showModal()}
+$("imgclose").onclick=()=>$("imgdlg").close();
+$("imglink").onclick=()=>{$("imgdlg").close();printHelp()};
 function printHelp(){const app=standalone();
  $("prt").textContent=app?"🖨 Printen kan niet vanuit het app-icoon":"🖨 Printen lukt hier niet";
  $("prwhy").textContent=app?"Op iPhone laat Apple niet toe om rechtstreeks te printen vanuit een app op het beginscherm. In Safari lukt het wel."

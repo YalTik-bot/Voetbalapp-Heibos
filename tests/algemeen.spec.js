@@ -97,9 +97,14 @@ test("printknop op iPhone vanaf het beginscherm: afdrukbare versie via het deelm
   await expect(page.locator("#prdlg")).toBeHidden();
   if (process.env.SHOT) require("fs").writeFileSync(process.env.SHOT, JSON.stringify(files.map((f) => f.url)));
 
-  // Delen van bestanden niet mogelijk: uitleg met link
+  // Delen van bestanden niet mogelijk (ouder toestel): pagina's als afbeeldingen, en van daar de link voor Safari
   await page.evaluate(() => (navigator.canShare = () => false));
   await page.click("#pr");
+  await expect(page.locator("#imgdlg")).toBeVisible();
+  await expect(page.locator("#imgs img")).toHaveCount(2);
+  expect(await page.locator("#imgs img").first().evaluate((i) => i.naturalWidth)).toBe(1240);
+  await page.click("#imglink");
+  await expect(page.locator("#imgdlg")).toBeHidden();
   await expect(page.locator("#prdlg")).toBeVisible();
   await expect(page.locator("#prt")).toContainText("app-icoon");
   await page.click("#prclose");

@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Heibos">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>K. Heibos S.V. Kalmthout – Opstelling</title>
-<link rel="stylesheet" href="style.css?v=35"></head><body>
+<link rel="stylesheet" href="style.css?v=36"></head><body>
 <header><label id="logo" title="Klik om je logo te kiezen"><span id="lt">K. Heibos S.V.<br>Kalmthout</span><input id="lf" type="file" accept="image/*" hidden></label>
 <div><h1>K. Heibos S.V. Kalmthout</h1><small>Opstelling &amp; wedstrijdklok</small></div>
 <button id="st" class="noprint hb" title="Seizoensoverzicht">📊<span class="tx"> Seizoen</span></button><button id="sh" class="noprint hb" title="Opstelling delen">📤<span class="tx"> Delen</span></button><button id="th" class="noprint hb" title="Donkere / lichte modus">🌙</button></header>
@@ -52,6 +52,10 @@
  <button type="button" class="g" id="prsaf" hidden>📄 Afdrukbare versie delen (kies daar Afdrukken)</button>
  <div class="mb"><button type="button" class="o" id="prcopy">🔗 Link met opstelling kopiëren</button><button type="button" class="g" id="prclose">Sluiten</button></div></div></dialog>
 
+<dialog id="imgdlg" class="noprint wide"><div class="ph"><b>🖨 Afdrukbare versie</b><button class="o" id="imgclose">✕</button></div>
+ <div id="imgbody"><p style="margin:0 0 8px"><b>Hou je vinger op een pagina</b> en kies <b>Deel</b> → <b>Afdrukken</b>, of <b>Bewaar in Foto's</b> en print ze van daaruit.</p>
+ <div id="imgs"></div><button type="button" class="o" id="imglink">Lukt niet? Open in Safari</button></div></dialog>
+
 <div id="toast" class="toast noprint" role="status" hidden></div>
 
 <dialog id="sdlg" class="noprint wide"><div class="ph"><b>📊 Seizoensoverzicht</b><button class="o" data-sclose="1">✕</button></div><div id="sbody"></div></dialog>
@@ -67,6 +71,6 @@
  <small>Elke wedstrijd wordt bewaard onder haar datum (● in de kalender). Een nieuwe datum begint met je huidige opstelling. „Opnieuw beginnen” zet klok, minuten en doelpunten van deze datum op nul.</small>
 </form></dialog>
 
-<script src="app.js?v=35"></script>
+<script src="app.js?v=36"></script>
 <!-- Bezoekersteller (GoatCounter): geen cookies, geen persoonsgegevens; alles na # in de link (gedeelde opstelling) wordt niet doorgestuurd -->
 <script data-goatcounter="https://heibos.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script></body></html>
