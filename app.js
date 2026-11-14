@@ -242,7 +242,17 @@ document.addEventListener("visibilitychange",()=>{if(document.visibilityState=="
 $("pa").onclick=()=>{if(!run)return;stop();render();press(false);toast("⏸ Gepauzeerd op "+fmt(S.rem),null,1600)};
 function resetMatch(){stop();S.per=view=0;S.rem=1200;S.sec=Array(N).fill(0);S.fsec=[0,1,2,3].map(()=>Array(N).fill(0));S.goals=[];S.og=[];S.subs=[]}
 $("rs").onclick=()=>{if(confirm("Tijd, spelersminuten en doelpunten (ook van de tegenstander) resetten? (opstelling en namen blijven)")){resetMatch();save();render()}};
-$("pr").onclick=()=>window.print();
+// Printen: in de ingebouwde browser van WhatsApp/Messenger/Facebook/Instagram doet window.print() vaak niets.
+// Opent er geen afdrukvenster, dan leggen we uit hoe je de app in Safari/Chrome opent.
+let printing=false;addEventListener("beforeprint",()=>printing=true);
+$("pr").onclick=()=>{printing=false;const t=Date.now();try{window.print()}catch(e){}
+ const blocked=Date.now()-t>300; // Chrome/Android: print() wacht tot het afdrukvenster dicht is
+ setTimeout(()=>{if(!printing&&!blocked)printHelp()},1200)};
+const appLink=()=>location.origin+location.pathname;
+function printHelp(){$("prlink").textContent=appLink();$("prcopy").textContent="🔗 Link kopiëren";$("prdlg").showModal()}
+$("prcopy").onclick=()=>{const done=()=>$("prcopy").textContent="✓ Gekopieerd";
+ try{navigator.clipboard.writeText(appLink()).then(done,()=>{})}catch(e){}};
+$("prclose").onclick=()=>$("prdlg").close();
 // Doelpunt van de tegenstander, op de minuut van de lopende klok
 // Doelpunt Heibos: kies de scorer uit wie nu op het lopende veld staat (grote knoppen, zonder scrollen)
 function scoreGoal(p){if(run)tick();const g={p,m:minute(),t:Date.now()};S.goals.push(g);save();renderGoals();
